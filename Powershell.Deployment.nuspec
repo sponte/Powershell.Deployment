@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Powershell.Deployment</id>
+        <version>1.0.0.0</version>
+        <title />
+        <authors>Stanislaw Wozniak &amp; Taliesin Sisson</authors>
+        <owners>Stanislaw Wozniak &amp; Taliesin Sisson</owners>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Powershell scripts that automated component deployment. Supports windows services (srvany.exe, NServiceBus, TopShelf) and websites.</description>
+    </metadata>
+    <files>
+        <file src="content\PowershellModules\CommonDeploy.psm1" target="content\Deployment\PowershellModules\CommonDeploy.psm1" />
+        <file src="content\PowershellModules\configuration.xsd" target="content\Deployment\PowershellModules\configuration.xsd" />
+        <file src="content\PowershellModules\Installation.psm1" target="content\Deployment\PowershellModules\Installation.psm1" />
+        <file src="content\PowershellModules\WebInstallation.psm1" target="content\Deployment\PowershellModules\WebInstallation.psm1" />
+        <file src="content\PowershellModules\ServiceInstallation.psm1" target="content\Deployment\PowershellModules\ServiceInstallation.psm1" />
+        <file src="templates\configuration.xml" target="templates\configuration.xml" />
+        <file src="templates\deployment_configuration.xml" target="templates\deployment_configuration.xml" />
+        <file src="templates\install.ps1" target="templates\install.ps1" />
+        <file src="templates\start.ps1" target="templates\start.ps1" />
+        <file src="templates\stop.ps1" target="templates\stop.ps1" />
+        <file src="templates\uninstall.ps1" target="templates\uninstall.ps1" />
+        <file src="templates\UpdateConfiguration.ps1" target="templates\UpdateConfiguration.ps1" />
+        <file src="solutiontemplates\InitialSetup.bat" target="solutiontemplates\InitialSetup.bat" />
+        <file src="solutiontemplates\InitialSetup.ps1" target="solutiontemplates\InitialSetup.ps1" />
+        <file src="tools\Install.ps1" target="tools\Install.ps1" />
+    </files>
+</package>

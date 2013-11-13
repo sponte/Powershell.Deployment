@@ -1,0 +1,1 @@
+powershell -command "%~dp0\InitialSetup.ps1"
