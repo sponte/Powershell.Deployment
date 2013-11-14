@@ -62,10 +62,8 @@
     </xs:all>
     <xs:attribute name="path" default="c:\inetpub\wwwroot" />
     <xs:attribute name="name" default="easyJet.Services.Container" />
-    <xs:attribute name="containerOnly" default="true" type="xs:boolean" />
-
+    <xs:attribute name="containerOnly" default="false" type="xs:boolean" />
   </xs:complexType>
-
 
   <xs:complexType name="virtualDirectories">
     <xs:sequence>
