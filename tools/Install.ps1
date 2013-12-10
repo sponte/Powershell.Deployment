@@ -186,11 +186,6 @@ if($isWindowsService) {
 }
 
 
-
-
-
-
-
 $legacyUpdateConfiguration = $project.ProjectItems | ?{ $_.Name.Equals("UpdateConfiguration.ps1") }
  
 if($legacyUpdateConfiguration) {

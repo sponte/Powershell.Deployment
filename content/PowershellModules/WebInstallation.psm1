@@ -63,6 +63,22 @@ function Start-Websites {
 	}
 }
 
+function Version-Websites {
+ param(        
+        [Parameter(Mandatory = $true)]
+        [string]
+        $rootPath,     
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLDocument]
+        $configuration
+    )
+
+	foreach($site in @($configuration.configuration.sites.site)) {
+		if(!$site) { continue }
+		Version-Website $rootPath $site
+	}
+}
+
 # Methods
 
 function Uninstall-Website {
@@ -89,8 +105,6 @@ function Uninstall-Website {
 	
 	foreach($application in @($siteConfig.applications.application)) {
 		if(!$application) { continue }
-
-		
 
 		# uninstall any custom .net installers that may be in the host assembly
 		$binPath = Join-Path  $application.physicalPath "Bin"
@@ -145,9 +159,7 @@ function Uninstall-Website {
 		} else {
 			Write-Log "ApplicationPool $($siteConfig.appPool.name) is not safe to remove as it contains other applications"
 		}
-	}
-
-		
+	}		
 }
 
 function Stop-Website {
@@ -335,7 +347,6 @@ function Install-Website {
 		} else	{
 			Write-Log "Can not find assembly $hostAssemblyFilePath so not running install-util"
 		}
-
 	}
 	
 	foreach($application in $siteConfig.applications.application) {
@@ -409,4 +420,64 @@ function Install-Website {
 			-Site $site.name `
 			-Force
 	}
+}
+
+function Version-Website {
+	param(
+		[Parameter(Mandatory = $true)]
+		[string]
+		$rootPath,
+		[Parameter(Mandatory = $true)]
+		[System.XML.XMLElement]
+		$siteConfig
+	)
+
+	$metaData = @()
+
+	if(Test-Path "IIS:/Sites/$($siteConfig.name)") {
+		if([string]::IsNullOrEmpty($siteConfig.path)) {
+			$siteConfig.path = $rootPath
+		}
+
+		if($siteConfig.path.StartsWith(".")) {
+			$siteConfig.path = (Join-Path $rootPath $siteConfig.path.SubString(1, $siteConfig.path.Length - 1)).ToString()
+		}
+	
+		$binPath = Join-Path $rootPath "Bin"
+		$hostAssemblyName = $siteConfig.name +  ".dll"
+		$hostAssemblyFilePath = (Join-Path $binPath $hostAssemblyName).ToString()
+		
+		if(Test-Path $hostAssemblyFilePath)
+		{
+			$metaData += Get-MetaDataFromAssembly -assemblyFilePath $hostAssemblyFilePath 
+		}
+	}
+
+	foreach($application in $siteConfig.applications.application) {
+		if(!$application) { continue }
+				
+		if([string]::IsNullOrEmpty($application.physicalPath)) {
+			$application.physicalPath = $rootPath
+		}
+		
+		if($application.physicalPath.StartsWith(".")) {
+			$application.physicalPath = (Join-Path $rootPath $application.physicalPath.SubString(1, $application.physicalPath.Length - 1)).ToString()
+		}
+		
+		$binPath = Join-Path  $application.physicalPath "Bin"
+						
+		if($binPath.StartsWith(".")) {
+			$binPath = (Join-Path $rootPath $binPath.SubString(1, $binPath.Length - 1)).ToString()
+		}
+		
+		$hostAssemblyName = $application.alias +  ".dll"
+		$hostAssemblyFilePath = (Join-Path $binPath $hostAssemblyName).ToString()
+		
+		if(Test-Path $hostAssemblyFilePath)
+		{
+			$metaData += Get-MetaDataFromAssembly -assemblyFilePath $hostAssemblyFilePath 
+		}
+	}
+
+	return $metaData
 }

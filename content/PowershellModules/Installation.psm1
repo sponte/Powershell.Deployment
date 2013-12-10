@@ -75,3 +75,21 @@ function Uninstall-All {
 	Uninstall-Services $rootPath $configuration
 }
 
+function Version-All {
+    param( 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $rootPath,         
+        [Parameter(Mandatory = $true)]
+        [string]
+        $environmentConfigurationFilePath,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $productConfigurationFilePath
+    )
+    
+    $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
+
+    Version-Websites $rootPath $configuration
+    Version-Services $rootPath $configuration
+}

@@ -1,5 +1,4 @@
-[CmdletBinding()]
-param(
+﻿param(
 	[string] $environmentConfigurationFilePath = (Join-Path (Split-Path -parent $MyInvocation.MyCommand.Definition) "deployment_configuration.json" ),
 	[string] $productConfigurationFilePath = (Join-Path (Split-Path -parent $MyInvocation.MyCommand.Definition) "configuration.xml" )
 )
@@ -9,7 +8,7 @@ Import-Module $scriptPath\PowershellModules\CommonDeploy.psm1 -Force
 
 $rootPath = Split-Path -parent $scriptPath
 
-$e = $environmentConfiguration = Read-ConfigurationTokens $environmentConfigurationFilePath
-$p = $productConfiguration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
-
-Write-Host "Updating configuration at $rootPath using $environmentConfigurationFilePath"
+Version-All `
+	-rootPath $rootPath `
+	-environmentConfigurationFilePath $environmentConfigurationFilePath `
+	-productConfigurationFilePath $productConfigurationFilePath

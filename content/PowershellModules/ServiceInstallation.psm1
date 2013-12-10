@@ -104,6 +104,32 @@ function Start-Services {
 	}	
 }
 
+function Version-Services {
+ param(        
+        [Parameter(Mandatory = $true)]
+        [string]
+        $rootPath,     
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLDocument]
+        $configuration
+    )
+
+    foreach($service in @($configuration.configuration.services.NServiceBus)) {
+        if(!$service) { continue }
+        Version-NserviceBus $service
+    }
+
+    foreach($service in @($configuration.configuration.services.WindowsService)) {
+        if(!$service) { continue }
+        Version-WindowsService $service
+    }   
+
+    foreach($service in @($configuration.configuration.services.TopshelfService)) {
+        if(!$service) { continue }
+        Version-TopshelfService $service
+    }   
+}
+
 # Methods
 
 function Install-WindowsService {
@@ -417,7 +443,6 @@ function Uninstall-TopshelfService {
 		$arguments += "uninstall"
 		$arguments += "-servicename:$($serviceConfig.Name)"
 
-
 		$binPath = $serviceConfig.path
 
 		if($binPath.StartsWith(".")) {
@@ -469,4 +494,72 @@ function Start-WindowsService {
 	} else {
 		Write-Log "Could not find $($serviceConfig.name) installed on the system"
 	}
+}
+
+function Version-WindowsService {
+    param(   
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $serviceConfig
+    )
+
+	$binPath = $serviceConfig.path
+
+	if($binPath.StartsWith(".")) {
+		$binPath = (Join-Path $rootPath $binPath.SubString(1, $binPath.Length - 1)).ToString()
+	}
+
+	$useSrvAny = $serviceConfig.srvany -eq $true
+
+	if ($useSrvAny) {
+		$servicePath = $binPath
+	} else {
+		$servicePath = $binPath
+	}
+
+	$metaData = @()
+    $metaData += Get-MetaDataFromAssembly -assemblyFilePath $servicePath 
+    return $metaData
+}
+
+
+function Version-NServiceBus {
+    param(   
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $serviceConfig
+    )
+
+	$binPath = $serviceConfig.path
+
+	if($binPath.StartsWith(".")) {
+		$binPath = (Join-Path $rootPath $binPath.SubString(1, $binPath.Length - 1)).ToString()
+	}
+
+	$servicePath = $binPath
+
+	$metaData = @()
+    $metaData += Get-MetaDataFromAssembly -assemblyFilePath $servicePath 
+	return $metaData
+}
+
+
+function Version-TopshelfService {
+    param(   
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $serviceConfig
+    )
+
+	$binPath = $serviceConfig.path
+
+	if($binPath.StartsWith(".")) {
+		$binPath = (Join-Path $rootPath $binPath.SubString(1, $binPath.Length - 1)).ToString()
+	}
+
+	$servicePath = $binPath
+
+	$metaData = @()
+    $metaData += Get-MetaDataFromAssembly -assemblyFilePath $servicePath 
+    return $metaData
 }
