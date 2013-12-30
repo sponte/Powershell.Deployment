@@ -308,13 +308,23 @@ function Install-Website {
 					$ip = "0.0.0.0"
 				}
 
-				if(Test-Path "IIS:/SslBindings/$ip!$port") {
-					Remove-Item "IIS:/SslBindings/$ip!$port" -Force
-				}
-			
 				$ssl = $binding.ssl
-			
-				$ssl.thumbprint | new-Item "IIS:/SslBindings/$ip!$port"
+				$thumbprint = $ssl.thumbprint
+
+				$certificate = Get-ChildItem -Path cert:\LocalMachine -Recurse | ?{$_.Thumbprint -eq $thumbprint} | Select-Object -first 1 
+
+				if(!(Test-Path "IIS:/SslBindings/$ip!$port")) {
+					New-Item "IIS:/sslbindings/$ip!$port" -value $certificate
+				} else {
+					$sslBinding = Get-Item "IIS:/sslbindings/$ip!$port"
+
+					if ($sslBinding.Thumbprint -eq $certificate.Thumbprint)
+					{
+						Write-Host "Certificate already installed in IIS"
+					} else {
+						Throw "Cannot use two different certificates on the same ip address $ip and port $port. The certificate thumbprints are: $($sslBinding.Thumbprint) and $($certificate.Thumbprint)"
+					}
+				}
 			}
 		}
 

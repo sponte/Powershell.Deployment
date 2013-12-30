@@ -15,6 +15,12 @@
             <xs:field xpath="name" />
           </xs:unique>
         </xs:element>
+        <xs:element name="certificates" type="certificates" minOccurs="0" maxOccurs="1">
+          <xs:unique name="UniqueCertificateName">
+            <xs:selector xpath="./*" />
+            <xs:field xpath="name" />
+          </xs:unique>
+        </xs:element>
       </xs:sequence>
       <xs:attribute name="defaultHost" default="localhost" />
       <xs:attribute name="componentName" use="required">
@@ -36,6 +42,12 @@
     </xs:sequence>
   </xs:complexType>
 
+  <xs:complexType name="certificates">
+    <xs:sequence>
+      <xs:element name="certificate" type="certificate" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
   <xs:complexType name="services">
     <xs:sequence>
       <xs:element name="NServiceBus" type="NServiceBus" minOccurs="0" maxOccurs="unbounded"/>
@@ -43,6 +55,63 @@
       <xs:element name="TopshelfService" type="TopshelfService" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
+
+  <xs:complexType name="certificate">
+    <xs:sequence>
+      <xs:element name="content" type="xs:string" minOccurs="1" maxOccurs="1" nillable="false"/>
+      <xs:element name="certificatePermissions" type="certificatePermissions" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueCertificatePermissionUserName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="username" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" use="required" />
+    <xs:attribute name="password" default="" />
+    <xs:attribute name="Exportable" default="true" type="xs:boolean" />
+    <xs:attribute name="PersistKeySet" default="false" type="xs:boolean" />
+    <xs:attribute name="removeOnUninstall" default="true" type="xs:boolean" />
+    <xs:attribute name="storeLocation" type="storeLocation" default="LocalMachine" />
+    <xs:attribute name="certificateStore" type="certificateStore" default="My" />
+  </xs:complexType>
+
+  <xs:complexType name="certificatePermissions">
+    <xs:sequence>
+      <xs:element name="certificatePermission" type="certificatePermission" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="certificatePermission">
+    <xs:attribute name="username" use="required" />
+    <xs:attribute name="read" default="true" type="xs:boolean" />
+    <xs:attribute name="fullControl" default="true" type="xs:boolean" />
+    <xs:attribute name="specialPermissions" default="false" type="xs:boolean" />
+  </xs:complexType>
+
+  <xs:simpleType name="storeLocation">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="CurrentUser" />
+      <xs:enumeration value="LocalMachine" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="certificateStore">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="TrustedPublisher" />
+      <xs:enumeration value="ClientAuthIssuer" />
+      <xs:enumeration value="Root" />
+      <xs:enumeration value="TrustedDevices" />
+      <xs:enumeration value="WebHosting" />
+      <xs:enumeration value="CA" />
+      <xs:enumeration value="REQUEST" />
+      <xs:enumeration value="AuthRoot" />
+      <xs:enumeration value="TrustedPeople" />
+      <xs:enumeration value="My" />
+      <xs:enumeration value="SmartCardRoot" />
+      <xs:enumeration value="Trust" />
+      <xs:enumeration value="Disallowed" />
+    </xs:restriction>
+  </xs:simpleType>
 
   <xs:complexType name="site">
     <xs:all>
@@ -63,7 +132,6 @@
     <xs:attribute name="path" default="c:\inetpub\wwwroot" />
     <xs:attribute name="name" default="easyJet.Services.Container" />
     <xs:attribute name="containerOnly" default="true" type="xs:boolean" />
-
   </xs:complexType>
 
 
