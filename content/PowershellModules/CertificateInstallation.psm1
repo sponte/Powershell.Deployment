@@ -157,7 +157,8 @@ function Convert-X509CertificateToBase64String
 {
     param(
         [string] $certificatePath,
-        [System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate
+        [System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate,
+		[string] $password
     )
 
     if ($certificatePath) {
@@ -166,8 +167,8 @@ function Convert-X509CertificateToBase64String
     }
     elseif ($certificate)
     {
-        $tempFile = [IO.Path]::GetTempFileName()
-        $null = Export-Certificate -Cert $certificate -FilePath $tempFile
+		$tempFile = [IO.Path]::GetTempFileName()
+		[system.IO.file]::WriteAllBytes($tempFile, $certificate.Export('PFX', $password))
         $binary = Get-Content $tempFile -Encoding Byte
         $null = Remove-Item $tempFile
         return [convert]::ToBase64String($binary)
@@ -304,5 +305,8 @@ function Set-CertificatePermission {
 		}
 	}
 
-	Set-Acl $certificateFile.FullName $certificatePermissions
+	if ($certificatePermissions)
+	{
+		Set-Acl $certificateFile.FullName $certificatePermissions
+	}
 }
