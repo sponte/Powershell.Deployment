@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Powershell.Deployment</id>
-        <version>1.0.0.4</version>
+        <version>1.0.0.5</version>
         <title />
         <authors>Stanislaw Wozniak &amp; Taliesin Sisson</authors>
         <owners>Stanislaw Wozniak &amp; Taliesin Sisson</owners>
@@ -10,6 +10,7 @@
         <description>Powershell scripts that automated component deployment. Supports windows services (srvany.exe, NServiceBus, TopShelf) and websites.</description>
     </metadata>
     <files>
+        <file src="content\PowershellModules\CertificateInstallation.psm1" target="content\Deployment\PowershellModules\CertificateInstallation.psm1" />
         <file src="content\PowershellModules\CommonDeploy.psm1" target="content\Deployment\PowershellModules\CommonDeploy.psm1" />
         <file src="content\PowershellModules\configuration.xsd" target="content\Deployment\PowershellModules\configuration.xsd" />
         <file src="content\PowershellModules\Installation.psm1" target="content\Deployment\PowershellModules\Installation.psm1" />
