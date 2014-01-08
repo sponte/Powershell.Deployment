@@ -69,7 +69,8 @@
     <xs:attribute name="name" use="required" />
     <xs:attribute name="password" default="" />
     <xs:attribute name="Exportable" default="true" type="xs:boolean" />
-    <xs:attribute name="PersistKeySet" default="false" type="xs:boolean" />
+    <xs:attribute name="PersistKeySet" default="true" type="xs:boolean" />
+    <xs:attribute name="MachineKeySet" default="true" type="xs:boolean" />
     <xs:attribute name="removeOnUninstall" default="false" type="xs:boolean" />
     <xs:attribute name="storeLocation" type="storeLocation" default="LocalMachine" />
     <xs:attribute name="certificateStore" type="certificateStore" default="My" />

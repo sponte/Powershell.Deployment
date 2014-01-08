@@ -312,6 +312,33 @@ function Install-Website {
 				$thumbprint = $ssl.thumbprint
 
 				$certificate = Get-ChildItem -Path cert:\LocalMachine -Recurse | ?{$_.Thumbprint -eq $thumbprint} | Select-Object -first 1 
+				if (!$certificate){
+					Throw "Cannot load certificate that matches thumbprint $thumbprint"
+				}
+
+				$privateKey = $certificate.PrivateKey
+
+				if (!$privateKey) {
+					Throw "Need access to private key for ssl encryption. Cannot access private key or does not contain private key for certificate with thumbprint $thumbprint"
+				}
+
+				$certificateFile = Get-Item -path "$ENV:ProgramData\Microsoft\Crypto\RSA\MachineKeys\*"  | where {$_.Name -eq $privateKey.CspKeyContainerInfo.UniqueKeyContainerName}
+				$certificatePermissions = (Get-Item -Path $certificateFile.FullName).GetAccessControl("Access")
+
+				$username = "Network Service"
+				if(![string]::IsNullOrEmpty($siteConfig.appPool.account)) {
+					$username = Format-AccountName $appPoolConfig.account
+				}
+
+				$permissionRule = $username,"Read","Allow"
+				$accessRule = new-object System.Security.AccessControl.FileSystemAccessRule $permissionRule
+				$certificatePermissions.AddAccessRule($accessRule)
+				
+				$permissionRule = $username,"FullControl","Allow"
+				$accessRule = new-object System.Security.AccessControl.FileSystemAccessRule $permissionRule
+				$certificatePermissions.AddAccessRule($accessRule)
+				
+				Set-Acl $certificateFile.FullName $certificatePermissions
 
 				if(!(Test-Path "IIS:/SslBindings/$ip!$port")) {
 					New-Item "IIS:/sslbindings/$ip!$port" -value $certificate

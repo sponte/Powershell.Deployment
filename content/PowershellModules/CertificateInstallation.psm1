@@ -70,12 +70,13 @@ function Uninstall-Certificate {
 
 	$certificateStore=$certificateConfig.certificateStore
 	$storeLocation=$certificateConfig.storeLocation
-	$Exportable=$certificateConfig.Exportable -eq $true
 	$password=$certificateConfig.password 
+	$Exportable=$certificateConfig.Exportable -eq $true
 	$PersistKeySet=$certificateConfig.PersistKeySet -eq $true
+	$MachineKeySet=$certificateConfig.MachineKeySet -eq $true
 	$removeOnUninstall=$certificateConfig.removeOnUninstall -eq $true
 
-	$certificate = Convert-Base64StringToX509Certificate -base64 $certificateContent -password $password -exportable $Exportable -persistKeySet $PersistKeySet
+	$certificate = Convert-Base64StringToX509Certificate -base64 $certificateContent -password $password -exportable $Exportable -persistKeySet $PersistKeySet -machineKeySet $MachineKeySet
 
 	Remove-X509Certificate -certificate $certificate -certificateStore $certificateStore -storeLocation $storeLocation
 }
@@ -162,14 +163,19 @@ function Convert-X509CertificateToBase64String
     )
 
     if ($certificatePath) {
-        $binary = Get-Content $certificatePath -Encoding Byte
+        $binary = Get-Content $certificatePath -raw -Encoding Byte 
         return [convert]::ToBase64String($binary)
     }
     elseif ($certificate)
     {
 		$tempFile = [IO.Path]::GetTempFileName()
-		[system.IO.file]::WriteAllBytes($tempFile, $certificate.Export('PFX', $password))
-        $binary = Get-Content $tempFile -Encoding Byte
+		if ($password)
+		{
+			[system.IO.file]::WriteAllBytes($tempFile, $certificate.Export('PFX', $password))
+		} else {
+			[system.IO.file]::WriteAllBytes($tempFile, $certificate.Export('PFX'))
+		}
+        $binary = Get-Content $tempFile -raw -Encoding Byte 
         $null = Remove-Item $tempFile
         return [convert]::ToBase64String($binary)
     } else {
@@ -183,8 +189,9 @@ function Convert-Base64StringToX509Certificate {
         [Parameter(Mandatory=$true)]
         [string] $base64,
         [string] $password,
-        [boolean] $exportable,
-        [boolean] $persistKeySet
+		[boolean] $machineKeySet = $true,
+        [boolean] $exportable = $true,
+        [boolean] $persistKeySet = $true
     )
 
     if ($password)
@@ -195,6 +202,11 @@ function Convert-Base64StringToX509Certificate {
     }
 
 	$options = @()
+	
+	if ($machineKeySet){
+		$options += "MachineKeySet"
+	}
+
 	if ($exportable){
 		$options += "Exportable"
 	}
@@ -214,7 +226,7 @@ function Convert-Base64StringToX509Certificate {
     $tempFile = [IO.Path]::GetTempFileName()
     Set-Content $tempFile -Value $binaryPfx -Encoding Byte
 
-    if ($securePassword -and $optionsText)
+	if ($securePassword -and $optionsText)
     {
         $certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($tempFile, $securePassword, $optionsText)
     } elseif ($securePassword -and !$optionsText) {
@@ -224,6 +236,7 @@ function Convert-Base64StringToX509Certificate {
     } else {
         $certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($tempFile)
     }
+
     Remove-Item $tempFile
     $certificate
 }
@@ -244,7 +257,11 @@ function Add-X509Certificate {
     }
 
     $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]'ReadWrite');
-    $store.Add($certificate);
+
+	if(!$store.Certificates.Contains($certificate)) {
+		$store.Add($certificate)
+	}
+
     $store.Close();
 }
 
@@ -264,8 +281,102 @@ function Remove-X509Certificate {
     }
 
     $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]'ReadWrite');
+
+	if($store.Certificates.Contains($certificate)) {
+		$store.Remove($certificate)
+	}
+
+    $store.Close();
+}
+
+function Get-X509Certificate {
+    [CmdletBinding()]
+    param(
+    	[System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate,
+    	[string] $certificateStore = 'My',
+    	[string] $storeLocation = 'LocalMachine'
+    )
+
+    $storeLocation = [System.Security.Cryptography.X509Certificates.StoreLocation]$storeLocation;
+    $store = New-Object System.Security.Cryptography.X509Certificates.X509Store($certificateStore, $storeLocation);
+    if (!$store) {
+        Write-Warning "Unable to open -computerName '\\$computer\LocalComputer\$certificateStore\' certificate store.";
+        continue;
+    }
+
+    $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]'Read');
     $store.Remove($certificate);
     $store.Close();
+}
+
+function Get-CertificatePrivateKeyPath
+{
+        param
+        (
+                [Parameter(Mandatory = $true, Position = 0)]
+                [string]
+                $CertificateInput,
+               
+                [string]
+                [ValidateSet('TrustedPublisher','Remote Desktop','Root','REQUEST','TrustedDevices','CA','Windows Live ID Token Issuer','AuthRoot','TrustedPeople','AddressBook','My','SmartCardRoot','Trust','Disallowed')]
+                $StoreName = 'My',
+               
+                [string]
+                [ValidateSet('LocalMachine','CurrentUser')]
+                $StoreScope = 'CurrentUser'
+        )
+        begin
+        {
+                Add-Type -AssemblyName System.Security
+        }
+       
+        process
+        {
+                if ($CertificateInput -match "^CN=") {
+                        # Common name given
+                        # Extract thumbprint(s) of possible certificate(s) with matching common name
+                        $MatchingThumbprints = Get-ChildItem cert:\$StoreScope\$StoreName |
+                                                Where-Object { $_.Subject -match "^" + $CertificateInput + ",?" } |
+                                                Select-Object Thumbprint
+                } else {
+                        # Assuming thumbprint
+                        # Create array of hashes, similar to output of Select-Object
+                        $MatchingThumbprints = @(@{"Thumbprint" = $CertificateInput})
+                }
+                if ($MatchingThumbprints.count -eq 0) {
+                        write-error ("Could not find any matching certificates.") -ErrorAction:Stop
+                }
+               
+                $CertificateStore = new-object System.Security.Cryptography.X509Certificates.X509Store([System.Security.Cryptography.X509Certificates.StoreLocation]$StoreScope)
+                $CertificateStore.open([System.Security.Cryptography.X509Certificates.OpenFlags]"ReadOnly")
+                $CertCollection = $CertificateStore.Certificates
+                Foreach ($Thumbprint in $MatchingThumbprints) {
+                        $MatchingCertificates = $CertCollection.Find([System.Security.Cryptography.X509Certificates.X509FindType]"FindByThumbprint", $Thumbprint.Thumbprint, $false)
+                        $stat = $?
+                        if ($stat -eq $false -or $MatchingCertificates.count -eq 0) {
+                                write-error ("Internal error: Could not find certificate by thumbprint " + $Thumbprint.Thumbprint) -ErrorAction:Stop
+                        }
+                       
+                        Foreach ($Certificate in $MatchingCertificates) {
+                                if ($Certificate.PrivateKey -eq $null) {
+                                        Write-Error ("Certificate doesn't have Private Key") -ErrorAction:Stop
+                                }
+ 
+                                Switch ($StoreScope)
+                                {
+                                        "LocalMachine" { $PrivateKeysPath = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::CommonApplicationData) + "\Microsoft\Crypto\RSA\MachineKeys"        }
+                                        "CurrentUser" { $PrivateKeysPath = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::ApplicationData) + "\Microsoft\Crypto\RSA" }
+                                }
+ 
+                                $PrivateKeyPath = $PrivateKeysPath + "\" + $Certificate.PrivateKey.CspKeyContainerInfo.UniqueKeyContainerName
+                                $PrivateKeyPath
+                        }
+                }
+        }
+ 
+        end
+        {
+        }
 }
 
 function Set-CertificatePermission {
