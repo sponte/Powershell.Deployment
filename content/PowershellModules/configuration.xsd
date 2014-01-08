@@ -21,6 +21,12 @@
             <xs:field xpath="name" />
           </xs:unique>
         </xs:element>
+        <xs:element name="filePermissions" type="filePermissions" minOccurs="0" maxOccurs="1">
+          <xs:unique name="UniqueFilePermissionName">
+            <xs:selector xpath="./*" />
+            <xs:field xpath="name" />
+          </xs:unique>
+        </xs:element>
       </xs:sequence>
       <xs:attribute name="defaultHost" default="localhost" />
       <xs:attribute name="componentName" use="required">
@@ -42,6 +48,13 @@
     </xs:sequence>
   </xs:complexType>
 
+
+  <xs:complexType name="filePermissions">
+    <xs:sequence>
+      <xs:element name="filePermission" type="filePermission" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  
   <xs:complexType name="certificates">
     <xs:sequence>
       <xs:element name="certificate" type="certificate" minOccurs="1" maxOccurs="unbounded" />
@@ -54,6 +67,20 @@
       <xs:element name="WindowsService" type="WindowsService" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="TopshelfService" type="TopshelfService" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="filePermission">
+    <xs:sequence>
+      <xs:element name="fileSystemRights" type="fileSystemRights" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueFileSystemRightUserName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="username" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" use="required" />
+    <xs:attribute name="path" use="required" />
+    <xs:attribute name="removeOnUninstall" default="false" type="xs:boolean" />
   </xs:complexType>
 
   <xs:complexType name="certificate">
@@ -76,10 +103,256 @@
     <xs:attribute name="certificateStore" type="certificateStore" default="My" />
   </xs:complexType>
 
+  <xs:complexType name="fileSystemRights">
+    <xs:sequence>
+      <xs:element name="fileSystemRight" type="fileSystemRight" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
   <xs:complexType name="certificatePermissions">
     <xs:sequence>
       <xs:element name="certificatePermission" type="certificatePermission" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="fileSystemRightAccessControlType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Allow" >
+        <xs:annotation>
+          <xs:documentation>
+            The AccessRule object is used to allow access to a secured object.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Deny" >
+        <xs:annotation>
+          <xs:documentation>
+            The AccessRule object is used to deny access to a secured object.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="fileSystemRightPropagationType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="InheritOnly" >
+        <xs:annotation>
+          <xs:documentation>
+            Specifies that the ACE is propagated only to child objects. This includes both container and leaf child objects.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="None" >
+        <xs:annotation>
+          <xs:documentation>
+            Specifies that no inheritance flags are set.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NoPropagateInherit" >
+        <xs:annotation>
+          <xs:documentation>
+            Specifies that the ACE is not propagated to child objects.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="fileSystemRight">
+    <xs:attribute name="username" use="required" >
+      <xs:annotation>
+        <xs:documentation>
+          The username or group to add permission for.
+        </xs:documentation>
+      </xs:annotation>      
+    </xs:attribute>
+    <xs:attribute name="accessControlType" default="Allow" type="fileSystemRightAccessControlType" />
+    <xs:attribute name="containerInherit" default="true" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          The ACE is inherited by child container objects.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="objectInherit" default="true" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          The ACE is inherited by child leaf objects.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="propagationType" default="None" type="fileSystemRightPropagationType" />
+    <xs:attribute name="appendData" default="false" type="xs:boolean" >
+      <xs:annotation>
+				<xs:documentation>
+          Specifies the right to append data to the end of a file.
+        </xs:documentation>
+			</xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="changePermissions" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to change the security and audit rules associated with a file or folder.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="createDirectories" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to create a folder.
+
+          This right requires the Synchronize value. Note that if you do not explicitly set the Synchronize value when creating a file or folder, the Synchronize value will be set automatically for you.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="createFiles" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to create a file.
+
+          This right requires the Synchronize value. Note that if you do not explicitly set the Synchronize value when creating a file or folder, the Synchronize value will be set automatically for you.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="delete" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to delete a folder or file.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="deleteSubdirectoriesAndFiles" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to delete a folder and any files contained within that folder.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="executeFile" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to run an application file.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="fullControl" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to exert full control over a folder or file, and to modify access control and audit rules. This value represents the right to do anything with a file and is the combination of all rights in this enumeration.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="listDirectory" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to read the contents of a directory.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="modify" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to read, write, list folder contents, delete folders and files, and run application files. This right includes the ReadAndExecute right, the Write right, and the Delete right.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="read" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to open and copy folders or files as read-only. This right includes the ReadData right, ReadExtendedAttributes right, ReadAttributes right, and ReadPermissions right.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="readAndExecute" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to open and copy folders or files as read-only, and to run application files. This right includes the Read right and the ExecuteFile right.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="readAttributes" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to open and copy file system attributes from a folder or file. For example, this value specifies the right to view the file creation or modified date. This does not include the right to read data, extended file system attributes, or access and audit rules.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="readData" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to open and copy a file or folder. This does not include the right to read file system attributes, extended file system attributes, or access and audit rules.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="readExtendedAttributes" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to open and copy extended file system attributes from a folder or file. For example, this value specifies the right to view author and content information. This does not include the right to read data, file system attributes, or access and audit rules.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="readPermissions" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to open and copy access and audit rules from a folder or file. This does not include the right to read data, file system attributes, and extended file system attributes.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="synchronize" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies whether the application can wait for a file handle to synchronize with the completion of an I/O operation.
+
+          The Synchronize value is automatically set when allowing access, and automatically excluded when denying access.
+
+          The right to create a file or folder requires this value. Note that if you do not explicitly set this value when creating a file, the value will be set automatically for you.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="takeOwnership" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to change the owner of a folder or file. Note that owners of a resource have full access to that resource.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="traverse" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to list the contents of a folder and to run applications contained within that folder.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="write" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to create folders and files, and to add or remove data from files. This right includes the WriteData right, AppendData right, WriteExtendedAttributes right, and WriteAttributes right.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="writeAttributes" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to open and write file system attributes to a folder or file. This does not include the ability to write data, extended attributes, or access and audit rules.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="writeData" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to open and write to a file or folder. This does not include the right to open and write file system attributes, extended file system attributes, or access and audit rules.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="writeExtendedAttributes" default="false" type="xs:boolean" >
+      <xs:annotation>
+        <xs:documentation>
+          Specifies the right to open and write extended file system attributes to a folder or file. This does not include the ability to write data, attributes, or access and audit rules.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   
   <xs:complexType name="certificatePermission">

@@ -392,7 +392,7 @@ function Set-CertificatePermission {
 	
 	$permissions | %{
 		$permission = $_
-		$username = $permission.Username
+		$username =  Format-AccountName $permission.Username
 
 		if ($permission.read)
 		{
