@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Powershell.Deployment</id>
-        <version>1.0.0.7</version>
+        <version>1.1.0.0</version>
         <title>Powershell Deployment modules for Visual Studio</title>
         <authors>Stanislaw Wozniak &amp; Taliesin Sisson</authors>
         <owners>Stanislaw Wozniak &amp; Taliesin Sisson</owners>
@@ -25,7 +25,7 @@
         <file src="templates\start.ps1" target="templates\start.ps1" />
         <file src="templates\stop.ps1" target="templates\stop.ps1" />
         <file src="templates\uninstall.ps1" target="templates\uninstall.ps1" />
-        <file src="templates\version.ps1" target="templates\version.ps1" />
+        <file src="templates\metadata.ps1" target="templates\metadata.ps1" />
         <file src="templates\UpdateConfiguration.ps1" target="templates\UpdateConfiguration.ps1" />
         <file src="solutiontemplates\InitialSetup.bat" target="solutiontemplates\InitialSetup.bat" />
         <file src="solutiontemplates\InitialSetup.ps1" target="solutiontemplates\InitialSetup.ps1" />

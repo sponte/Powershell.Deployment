@@ -84,31 +84,10 @@ function Project-Action {
 	}
 }	
 
-$projects = Get-ProjectsWithNugetPackage "easyJet.Deployment.Scripts"
+$projects = Get-ProjectsWithNugetPackage "Powershell.Deployment"
 
-function Download-DeploymentConfiguration {
-	param(
-			[string] $project
-		)
-
-	$deployConf = "$project\deployment\deployment_configuration.xml"
-	$latestdeployConf = "$project\deployment\latest_deployment_configuration.xml"
-
-	Remove-Item $latestdeployConf -Force -ErrorAction SilentlyContinue	
-	try {
-	(
-		new-object system.net.webclient).DownloadFile("http://ads/TeamCity/DownloadConfigForEnvironmentName?environmentName=localhost", $latestdeployConf)
-		Remove-Item $deployConf -Force -ErrorAction SilentlyContinue
-		Move-Item $latestdeployConf $deployConf
-	} catch {		
-	}
-}
-
-$projects | %{ Download-DeploymentConfiguration $_ }
 $projects | %{ Project-Action $_ "stop" $false }
 $projects | %{ Project-Action $_ "uninstall" $false }
-
-& "$($env:windir)\microsoft.net\framework\v4.0.30319\msbuild.exe" "$root\scripts\InitialSetup.proj"
 
 $projects | %{ Project-Action $_ "install" }
 $projects | %{ Project-Action $_ "start"  }
