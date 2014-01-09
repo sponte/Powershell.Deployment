@@ -13,6 +13,8 @@
     
 	$configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
+	Install-FilePermissions $rootPath $configuration
+    Install-Certificates $rootPath $configuration
 	Install-Websites $rootPath $configuration
 	Install-Services $rootPath $configuration
 }
@@ -73,5 +75,26 @@ function Uninstall-All {
 
 	Uninstall-Websites $rootPath $configuration
 	Uninstall-Services $rootPath $configuration
+    Uninstall-Certificates $rootPath $configuration
+	Uninstall-FilePermissions $rootPath $configuration
 }
 
+function Version-All {
+    param( 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $rootPath,         
+        [Parameter(Mandatory = $true)]
+        [string]
+        $environmentConfigurationFilePath,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $productConfigurationFilePath
+    )
+    
+    $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
+
+    Version-Certificates $rootPath $configuration
+    Version-Websites $rootPath $configuration
+    Version-Services $rootPath $configuration
+}

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Powershell.Deployment</id>
-        <version>1.0.0.1</version>
+        <version>1.0.0.7</version>
         <title>Powershell Deployment modules for Visual Studio</title>
         <authors>Stanislaw Wozniak &amp; Taliesin Sisson</authors>
         <owners>Stanislaw Wozniak &amp; Taliesin Sisson</owners>
@@ -12,8 +12,10 @@
         <projectUrl>https://github.com/sponte/Powershell.Deployment</projectUrl>
     </metadata>
     <files>
+        <file src="content\PowershellModules\CertificateInstallation.psm1" target="content\Deployment\PowershellModules\CertificateInstallation.psm1" />
         <file src="content\PowershellModules\CommonDeploy.psm1" target="content\Deployment\PowershellModules\CommonDeploy.psm1" />
         <file src="content\PowershellModules\configuration.xsd" target="content\Deployment\PowershellModules\configuration.xsd" />
+        <file src="content\PowershellModules\FilePermissionInstallation.psm1" target="content\Deployment\PowershellModules\FilePermissionInstallation.psm1" />
         <file src="content\PowershellModules\Installation.psm1" target="content\Deployment\PowershellModules\Installation.psm1" />
         <file src="content\PowershellModules\WebInstallation.psm1" target="content\Deployment\PowershellModules\WebInstallation.psm1" />
         <file src="content\PowershellModules\ServiceInstallation.psm1" target="content\Deployment\PowershellModules\ServiceInstallation.psm1" />
@@ -23,6 +25,7 @@
         <file src="templates\start.ps1" target="templates\start.ps1" />
         <file src="templates\stop.ps1" target="templates\stop.ps1" />
         <file src="templates\uninstall.ps1" target="templates\uninstall.ps1" />
+        <file src="templates\version.ps1" target="templates\version.ps1" />
         <file src="templates\UpdateConfiguration.ps1" target="templates\UpdateConfiguration.ps1" />
         <file src="solutiontemplates\InitialSetup.bat" target="solutiontemplates\InitialSetup.bat" />
         <file src="solutiontemplates\InitialSetup.ps1" target="solutiontemplates\InitialSetup.ps1" />
