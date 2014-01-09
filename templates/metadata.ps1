@@ -8,7 +8,7 @@ Import-Module $scriptPath\PowershellModules\CommonDeploy.psm1 -Force
 
 $rootPath = Split-Path -parent $scriptPath
 
-Version-All `
+Get-Metadata `
 	-rootPath $rootPath `
 	-environmentConfigurationFilePath $environmentConfigurationFilePath `
 	-productConfigurationFilePath $productConfigurationFilePath
