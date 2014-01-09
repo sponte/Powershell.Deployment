@@ -104,7 +104,7 @@ function Start-Services {
 	}	
 }
 
-function Version-Services {
+function Get-MetadataForServices {
  param(        
         [Parameter(Mandatory = $true)]
         [string]
@@ -116,17 +116,17 @@ function Version-Services {
 
     foreach($service in @($configuration.configuration.services.NServiceBus)) {
         if(!$service) { continue }
-        Version-NserviceBus $service
+        Get-MetadataForNserviceBus $service
     }
 
     foreach($service in @($configuration.configuration.services.WindowsService)) {
         if(!$service) { continue }
-        Version-WindowsService $service
+        Get-MetadataForWindowsService $service
     }   
 
     foreach($service in @($configuration.configuration.services.TopshelfService)) {
         if(!$service) { continue }
-        Version-TopshelfService $service
+        Get-MetadataForTopshelfService $service
     }   
 }
 
@@ -496,7 +496,7 @@ function Start-WindowsService {
 	}
 }
 
-function Version-WindowsService {
+function Get-MetadataForWindowsService {
     param(   
         [Parameter(Mandatory = $true)]
         [System.XML.XMLElement]
@@ -523,7 +523,7 @@ function Version-WindowsService {
 }
 
 
-function Version-NServiceBus {
+function Get-MetadataForNServiceBus {
     param(   
         [Parameter(Mandatory = $true)]
         [System.XML.XMLElement]
@@ -544,7 +544,7 @@ function Version-NServiceBus {
 }
 
 
-function Version-TopshelfService {
+function Get-MetadataForTopshelfService {
     param(   
         [Parameter(Mandatory = $true)]
         [System.XML.XMLElement]
