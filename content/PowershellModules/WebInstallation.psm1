@@ -348,7 +348,10 @@ function Install-Website {
 					if ($sslBinding.Thumbprint -eq $certificate.Thumbprint)
 					{
 						Write-Host "Certificate already installed in IIS"
-					} else {
+					} elseif ($sslBinding.Sites.Count -eq 0) {
+						Remove-Item "IIS:/sslbindings/$ip!$port"
+					}
+					else {
 						Throw "Cannot use two different certificates on the same ip address $ip and port $port. The certificate thumbprints are: $($sslBinding.Thumbprint) and $($certificate.Thumbprint)"
 					}
 				}
