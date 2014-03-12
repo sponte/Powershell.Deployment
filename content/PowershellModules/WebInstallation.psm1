@@ -1,10 +1,3 @@
-$m = Get-Module WebAdministration -ListAvailable
-if($m) {
-	Import-Module $m.Name
-} else {
-	Write-Warning "WebAdministration module is not installed. It is not required for all installations but if you're trying to configure a website your installation will fail"
-}
-
 function Install-Websites {
  param( 
 		[Parameter(Mandatory = $true)]       
