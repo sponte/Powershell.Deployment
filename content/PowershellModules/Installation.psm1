@@ -10,12 +10,17 @@
 		[string]
 		$productConfigurationFilePath
     )
+
+    $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
     
 	$configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
 	Install-FilePermissions $rootPath $configuration
     Install-Certificates $rootPath $configuration
-	Install-Websites $rootPath $configuration
+    if ($webAdministrationAvailable)
+    {
+	   Install-Websites $rootPath $configuration
+    }
 	Install-Services $rootPath $configuration
 }
 
@@ -31,10 +36,15 @@ function Stop-All {
 		[string]
 		$productConfigurationFilePath
     )
+
+    $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
     
 	$configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
-	Stop-Websites $configuration
+    if ($webAdministrationAvailable)
+    {
+	   Stop-Websites $configuration
+    }
 	Stop-Services $rootPath $configuration
 }
 
@@ -50,10 +60,15 @@ function Start-All {
 		[string]
 		$productConfigurationFilePath
     )
+
+    $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
     
 	$configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
-	Start-Websites $configuration
+    if ($webAdministrationAvailable)
+    {
+	   Start-Websites $configuration
+    }
 	Start-Services $rootPath $configuration
 }
 
@@ -70,10 +85,15 @@ function Uninstall-All {
 		[string]
 		$productConfigurationFilePath
     )
+
+    $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
     
 	$configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
-	Uninstall-Websites $rootPath $configuration
+    if ($webAdministrationAvailable)
+    {
+	   Uninstall-Websites $rootPath $configuration
+    }
 	Uninstall-Services $rootPath $configuration
     Uninstall-Certificates $rootPath $configuration
 	Uninstall-FilePermissions $rootPath $configuration
@@ -91,10 +111,15 @@ function Version-All {
         [string]
         $productConfigurationFilePath
     )
+
+    $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
     Version-Certificates $rootPath $configuration
-    Version-Websites $rootPath $configuration
+    if ($webAdministrationAvailable)
+    {
+        Version-Websites $rootPath $configuration
+    }
     Version-Services $rootPath $configuration
 }
