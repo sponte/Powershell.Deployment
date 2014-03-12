@@ -99,7 +99,7 @@ function Uninstall-All {
 	Uninstall-FilePermissions $rootPath $configuration
 }
 
-function Version-All {
+function Get-Metadata {
     param( 
         [Parameter(Mandatory = $true)]
         [string]
@@ -116,10 +116,10 @@ function Version-All {
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
-    Version-Certificates $rootPath $configuration
+    Get-MetadataForCertificates $rootPath $configuration
     if ($webAdministrationAvailable)
     {
-        Version-Websites $rootPath $configuration
+    Get-MetadataForWebsites $rootPath $configuration
     }
-    Version-Services $rootPath $configuration
+    Get-MetadataForServices $rootPath $configuration
 }

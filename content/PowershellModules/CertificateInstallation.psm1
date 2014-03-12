@@ -1,43 +1,43 @@
 $m = Get-Module WebAdministration -ListAvailable
 if($m) {
-	Import-Module $m.Name
+    Import-Module $m.Name
 } else {
-	Write-Warning "WebAdministration module is not installed. It is not required for all installations but if you're trying to configure a Certificate your installation will fail"
+    Write-Warning "WebAdministration module is not installed. It is not required for all installations but if you're trying to configure a Certificate your installation will fail"
 }
 
 function Install-Certificates {
     param( 
-		[Parameter(Mandatory = $true)]       
-		[string] 
-		$rootPath,
-		[Parameter(Mandatory = $true)]
-		[System.XML.XMLDocument] 
-		$configuration
-	)
-	
-	foreach($certificate in @($configuration.configuration.certificates.certificate)) {
-		if(!$certificate) { continue }
-		Install-Certificate -rootPath $rootPath -certificateConfig $certificate
-	}
+        [Parameter(Mandatory = $true)]       
+        [string] 
+        $rootPath,
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLDocument] 
+        $configuration
+    )
+    
+    foreach($certificate in @($configuration.configuration.certificates.certificate)) {
+        if(!$certificate) { continue }
+        Install-Certificate -rootPath $rootPath -certificateConfig $certificate
+    }
 }
 
 function Uninstall-Certificates {
     param(        
- 		[Parameter(Mandatory = $true)]       
-		[string] 
-		$rootPath,
-		[Parameter(Mandatory = $true)]
-		[System.XML.XMLDocument] 
-		$configuration
-	)
-	
-	foreach($certificate in @($configuration.configuration.certificates.certificate)) {
-		if(!$certificate) { continue }
-		Uninstall-Certificate $rootPath $certificate
-	}
+        [Parameter(Mandatory = $true)]       
+        [string] 
+        $rootPath,
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLDocument] 
+        $configuration
+    )
+    
+    foreach($certificate in @($configuration.configuration.certificates.certificate)) {
+        if(!$certificate) { continue }
+        Uninstall-Certificate $rootPath $certificate
+    }
 }
 
-function Version-Certificates {
+function Get-MetadataForCertificates {
     param(        
         [Parameter(Mandatory = $true)]
         [string]
@@ -47,111 +47,111 @@ function Version-Certificates {
         $configuration
     )
 
-	foreach($certificate in @($configuration.configuration.certificates.certificate)) {
-		if(!$certificate) { continue }
-		Version-Certificate $rootPath $certificate
-	}
+    foreach($certificate in @($configuration.configuration.certificates.certificate)) {
+        if(!$certificate) { continue }
+        Get-MetadataForCertificate $rootPath $certificate
+    }
 }
 
 # Methods
 
 function Uninstall-Certificate {
-	param(
- 		[Parameter(Mandatory = $true)]       
-		[string] 
-		$rootPath,
-	    [Parameter(Mandatory = $true)]
-		[System.XML.XMLElement]
-		$certificateConfig
-	)
+    param(
+        [Parameter(Mandatory = $true)]       
+        [string] 
+        $rootPath,
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $certificateConfig
+    )
 
-	$certificateName = $certificateConfig.name
-	$certificateContent = $certificateConfig.content
+    $certificateName = $certificateConfig.name
+    $certificateContent = $certificateConfig.content
 
-	$certificateStore=$certificateConfig.certificateStore
-	$storeLocation=$certificateConfig.storeLocation
-	$password=$certificateConfig.password 
-	$Exportable=$certificateConfig.Exportable -eq $true
-	$PersistKeySet=$certificateConfig.PersistKeySet -eq $true
-	$MachineKeySet=$certificateConfig.MachineKeySet -eq $true
-	$removeOnUninstall=$certificateConfig.removeOnUninstall -eq $true
+    $certificateStore=$certificateConfig.certificateStore
+    $storeLocation=$certificateConfig.storeLocation
+    $password=$certificateConfig.password 
+    $Exportable=$certificateConfig.Exportable -eq $true
+    $PersistKeySet=$certificateConfig.PersistKeySet -eq $true
+    $MachineKeySet=$certificateConfig.MachineKeySet -eq $true
+    $removeOnUninstall=$certificateConfig.removeOnUninstall -eq $true
 
-	$certificate = Convert-Base64StringToX509Certificate -base64 $certificateContent -password $password -exportable $Exportable -persistKeySet $PersistKeySet -machineKeySet $MachineKeySet
+    $certificate = Convert-Base64StringToX509Certificate -base64 $certificateContent -password $password -exportable $Exportable -persistKeySet $PersistKeySet -machineKeySet $MachineKeySet
 
-	Remove-X509Certificate -certificate $certificate -certificateStore $certificateStore -storeLocation $storeLocation
+    Remove-X509Certificate -certificate $certificate -certificateStore $certificateStore -storeLocation $storeLocation
 }
 
 function Install-Certificate {
-	param(
-		[Parameter(Mandatory = $true)]
-		[string]
-		$rootPath,
-		[Parameter(Mandatory = $true)]
-		[System.XML.XMLElement]
-		$certificateConfig
-	)
-	
-	UnInstall-Certificate $rootPath $certificateConfig
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $rootPath,
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $certificateConfig
+    )
+    
+    UnInstall-Certificate $rootPath $certificateConfig
 
-	$certificateName = $certificateConfig.name
-	$certificateContent = $certificateConfig.content
+    $certificateName = $certificateConfig.name
+    $certificateContent = $certificateConfig.content
 
-	$certificateStore=$certificateConfig.certificateStore
-	$storeLocation=$certificateConfig.storeLocation
-	$Exportable=$certificateConfig.Exportable -eq $true
-	$password=$certificateConfig.password 
-	$PersistKeySet=$certificateConfig.PersistKeySet -eq $true
-	$removeOnUninstall=$certificateConfig.removeOnUninstall -eq $true
+    $certificateStore=$certificateConfig.certificateStore
+    $storeLocation=$certificateConfig.storeLocation
+    $Exportable=$certificateConfig.Exportable -eq $true
+    $password=$certificateConfig.password 
+    $PersistKeySet=$certificateConfig.PersistKeySet -eq $true
+    $removeOnUninstall=$certificateConfig.removeOnUninstall -eq $true
 
-	$certificate = Convert-Base64StringToX509Certificate -base64 $certificateContent -password $password -exportable $Exportable -persistKeySet $PersistKeySet
+    $certificate = Convert-Base64StringToX509Certificate -base64 $certificateContent -password $password -exportable $Exportable -persistKeySet $PersistKeySet
 
-	Add-X509Certificate -certificate $certificate -certificateStore $certificateStore -storeLocation $storeLocation
+    Add-X509Certificate -certificate $certificate -certificateStore $certificateStore -storeLocation $storeLocation
 
-	$certificatePermissions = @() 
-	foreach($certificatePermission in @($certificateConfig.certificatePermissions.certificatePermission)) {
-		$certificatePermissions += $certificatePermission
-	}
+    $certificatePermissions = @() 
+    foreach($certificatePermission in @($certificateConfig.certificatePermissions.certificatePermission)) {
+        $certificatePermissions += $certificatePermission
+    }
 
     if ($certificatePermissions)
     {
-	   Set-CertificatePermission -certificate $certificate -permissions $certificatePermissions
+       Set-CertificatePermission -certificate $certificate -permissions $certificatePermissions
     }
 }
 
-function Version-Certificate {
-	param(
-		[Parameter(Mandatory = $true)]
-		[string]
-		$rootPath,
-		[Parameter(Mandatory = $true)]
-		[System.XML.XMLElement]
-		$certificateConfig
-	)
+function Get-MetadataForCertificate {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $rootPath,
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $certificateConfig
+    )
 
-	$certificateName = $certificateConfig.name
-	$certificateContent = $certificateConfig.content
+    $certificateName = $certificateConfig.name
+    $certificateContent = $certificateConfig.content
 
-	$certificateStore=$certificateConfig.certificateStore
-	$storeLocation=$certificateConfig.storeLocation
-	$Exportable=$certificateConfig.Exportable -eq $true
-	$password=$certificateConfig.password 
-	$PersistKeySet=$certificateConfig.PersistKeySet -eq $true
-	$removeOnUninstall=$certificateConfig.removeOnUninstall -eq $true
+    $certificateStore=$certificateConfig.certificateStore
+    $storeLocation=$certificateConfig.storeLocation
+    $Exportable=$certificateConfig.Exportable -eq $true
+    $password=$certificateConfig.password 
+    $PersistKeySet=$certificateConfig.PersistKeySet -eq $true
+    $removeOnUninstall=$certificateConfig.removeOnUninstall -eq $true
 
-	$certificate = Convert-Base64StringToX509Certificate -base64 $certificateContent -password $password -exportable $Exportable -persistKeySet $PersistKeySet
+    $certificate = Convert-Base64StringToX509Certificate -base64 $certificateContent -password $password -exportable $Exportable -persistKeySet $PersistKeySet
 
-	$metaData = @(
-		certificateName=$certificateName;
-		certificateStore=$certificateStore;
-		storeLocation=$storeLocation;
-		thumbprint=$certificate.Thumbprint;
-		notAfter=$certificate.NotAfter;
-		notBefore=$certificate.NotBefore;
-		issuer=$certificate.Issuer;
-		subject=$certificate.Subject;
-	)
+    $metaData = @{
+        certificateName=$certificateName;
+        certificateStore=$certificateStore;
+        storeLocation=$storeLocation;
+        thumbprint=$certificate.Thumbprint;
+        notAfter=$certificate.NotAfter;
+        notBefore=$certificate.NotBefore;
+        issuer=$certificate.Issuer;
+        subject=$certificate.Subject;
+    }
 
-	return $metaData
+    return $metaData
 }
 
 function Convert-X509CertificateToBase64String
@@ -159,7 +159,7 @@ function Convert-X509CertificateToBase64String
     param(
         [string] $certificatePath,
         [System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate,
-		[string] $password
+        [string] $password
     )
 
     if ($certificatePath) {
@@ -168,13 +168,13 @@ function Convert-X509CertificateToBase64String
     }
     elseif ($certificate)
     {
-		$tempFile = [IO.Path]::GetTempFileName()
-		if ($password)
-		{
-			[system.IO.file]::WriteAllBytes($tempFile, $certificate.Export('PFX', $password))
-		} else {
-			[system.IO.file]::WriteAllBytes($tempFile, $certificate.Export('PFX'))
-		}
+        $tempFile = [IO.Path]::GetTempFileName()
+        if ($password)
+        {
+            [system.IO.file]::WriteAllBytes($tempFile, $certificate.Export('PFX', $password))
+        } else {
+            [system.IO.file]::WriteAllBytes($tempFile, $certificate.Export('PFX'))
+        }
         $binary = Get-Content $tempFile -raw -Encoding Byte 
         $null = Remove-Item $tempFile
         return [convert]::ToBase64String($binary)
@@ -189,7 +189,7 @@ function Convert-Base64StringToX509Certificate {
         [Parameter(Mandatory=$true)]
         [string] $base64,
         [string] $password,
-		[boolean] $machineKeySet = $true,
+        [boolean] $machineKeySet = $true,
         [boolean] $exportable = $true,
         [boolean] $persistKeySet = $true
     )
@@ -201,21 +201,21 @@ function Convert-Base64StringToX509Certificate {
         $securePassword = $null 
     }
 
-	$options = @()
-	
-	if ($machineKeySet){
-		$options += "MachineKeySet"
-	}
+    $options = @()
+    
+    if ($machineKeySet){
+        $options += "MachineKeySet"
+    }
 
-	if ($exportable){
-		$options += "Exportable"
-	}
+    if ($exportable){
+        $options += "Exportable"
+    }
 
-	if ($persistKeySet){
-		$options += "PersistKeySet"
-	}
+    if ($persistKeySet){
+        $options += "PersistKeySet"
+    }
 
-	$optionsText = $options -join ','
+    $optionsText = $options -join ','
 
     if (!$optionsText)
     {
@@ -226,7 +226,7 @@ function Convert-Base64StringToX509Certificate {
     $tempFile = [IO.Path]::GetTempFileName()
     Set-Content $tempFile -Value $binaryPfx -Encoding Byte
 
-	if ($securePassword -and $optionsText)
+    if ($securePassword -and $optionsText)
     {
         $certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($tempFile, $securePassword, $optionsText)
     } elseif ($securePassword -and !$optionsText) {
@@ -244,9 +244,9 @@ function Convert-Base64StringToX509Certificate {
 function Add-X509Certificate {
     [CmdletBinding()]
     param(
-    	[System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate,
-    	[string] $certificateStore = 'My',
-    	[string] $storeLocation = 'LocalMachine'
+        [System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate,
+        [string] $certificateStore = 'My',
+        [string] $storeLocation = 'LocalMachine'
     )
 
     $storeLocation = [System.Security.Cryptography.X509Certificates.StoreLocation]$storeLocation;
@@ -256,11 +256,11 @@ function Add-X509Certificate {
         continue;
     }
 
-    $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]'ReadWrite');
+    $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite);
 
-	if(!$store.Certificates.Contains($certificate)) {
-		$store.Add($certificate)
-	}
+    if(!$store.Certificates.Contains($certificate)) {
+        $store.Add($certificate)
+    }
 
     $store.Close();
 }
@@ -268,9 +268,9 @@ function Add-X509Certificate {
 function Remove-X509Certificate {
     [CmdletBinding()]
     param(
-    	[System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate,
-    	[string] $certificateStore = 'My',
-    	[string] $storeLocation = 'LocalMachine'
+        [System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate,
+        [string] $certificateStore = 'My',
+        [string] $storeLocation = 'LocalMachine'
     )
 
     $storeLocation = [System.Security.Cryptography.X509Certificates.StoreLocation]$storeLocation;
@@ -282,9 +282,9 @@ function Remove-X509Certificate {
 
     $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]'ReadWrite');
 
-	if($store.Certificates.Contains($certificate)) {
-		$store.Remove($certificate)
-	}
+    if($store.Certificates.Contains($certificate)) {
+        $store.Remove($certificate)
+    }
 
     $store.Close();
 }
@@ -292,9 +292,9 @@ function Remove-X509Certificate {
 function Get-X509Certificate {
     [CmdletBinding()]
     param(
-    	[System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate,
-    	[string] $certificateStore = 'My',
-    	[string] $storeLocation = 'LocalMachine'
+        [System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate,
+        [string] $certificateStore = 'My',
+        [string] $storeLocation = 'LocalMachine'
     )
 
     $storeLocation = [System.Security.Cryptography.X509Certificates.StoreLocation]$storeLocation;
@@ -309,115 +309,46 @@ function Get-X509Certificate {
     $store.Close();
 }
 
-function Get-CertificatePrivateKeyPath
-{
-        param
-        (
-                [Parameter(Mandatory = $true, Position = 0)]
-                [string]
-                $CertificateInput,
-               
-                [string]
-                [ValidateSet('TrustedPublisher','Remote Desktop','Root','REQUEST','TrustedDevices','CA','Windows Live ID Token Issuer','AuthRoot','TrustedPeople','AddressBook','My','SmartCardRoot','Trust','Disallowed')]
-                $StoreName = 'My',
-               
-                [string]
-                [ValidateSet('LocalMachine','CurrentUser')]
-                $StoreScope = 'CurrentUser'
-        )
-        begin
-        {
-                Add-Type -AssemblyName System.Security
-        }
-       
-        process
-        {
-                if ($CertificateInput -match "^CN=") {
-                        # Common name given
-                        # Extract thumbprint(s) of possible certificate(s) with matching common name
-                        $MatchingThumbprints = Get-ChildItem cert:\$StoreScope\$StoreName |
-                                                Where-Object { $_.Subject -match "^" + $CertificateInput + ",?" } |
-                                                Select-Object Thumbprint
-                } else {
-                        # Assuming thumbprint
-                        # Create array of hashes, similar to output of Select-Object
-                        $MatchingThumbprints = @(@{"Thumbprint" = $CertificateInput})
-                }
-                if ($MatchingThumbprints.count -eq 0) {
-                        write-error ("Could not find any matching certificates.") -ErrorAction:Stop
-                }
-               
-                $CertificateStore = new-object System.Security.Cryptography.X509Certificates.X509Store([System.Security.Cryptography.X509Certificates.StoreLocation]$StoreScope)
-                $CertificateStore.open([System.Security.Cryptography.X509Certificates.OpenFlags]"ReadOnly")
-                $CertCollection = $CertificateStore.Certificates
-                Foreach ($Thumbprint in $MatchingThumbprints) {
-                        $MatchingCertificates = $CertCollection.Find([System.Security.Cryptography.X509Certificates.X509FindType]"FindByThumbprint", $Thumbprint.Thumbprint, $false)
-                        $stat = $?
-                        if ($stat -eq $false -or $MatchingCertificates.count -eq 0) {
-                                write-error ("Internal error: Could not find certificate by thumbprint " + $Thumbprint.Thumbprint) -ErrorAction:Stop
-                        }
-                       
-                        Foreach ($Certificate in $MatchingCertificates) {
-                                if ($Certificate.PrivateKey -eq $null) {
-                                        Write-Error ("Certificate doesn't have Private Key") -ErrorAction:Stop
-                                }
- 
-                                Switch ($StoreScope)
-                                {
-                                        "LocalMachine" { $PrivateKeysPath = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::CommonApplicationData) + "\Microsoft\Crypto\RSA\MachineKeys"        }
-                                        "CurrentUser" { $PrivateKeysPath = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::ApplicationData) + "\Microsoft\Crypto\RSA" }
-                                }
- 
-                                $PrivateKeyPath = $PrivateKeysPath + "\" + $Certificate.PrivateKey.CspKeyContainerInfo.UniqueKeyContainerName
-                                $PrivateKeyPath
-                        }
-                }
-        }
- 
-        end
-        {
-        }
-}
+
 
 function Set-CertificatePermission {
-	[CmdletBinding()]
+    [CmdletBinding()]
     param(
-    	[System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate,
-    	[object[]] $permissions
+        [System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate,
+        [object[]] $permissions
     )
 
-	$privateKey = $certificate.PrivateKey
-	$certificateFile = Get-Item -path "$ENV:ProgramData\Microsoft\Crypto\RSA\MachineKeys\*"  | where {$_.Name -eq $privateKey.CspKeyContainerInfo.UniqueKeyContainerName}
-	$certificatePermissions = (Get-Item -Path $certificateFile.FullName).GetAccessControl("Access")
-	
-	$permissions | %{
-		$permission = $_
-		$username =  Format-AccountName $permission.Username
+    $privateKey = $certificate.PrivateKey
+    $uniqueKeyContainerName = $privateKey.CspKeyContainerInfo.UniqueKeyContainerName
+    $certificateFile = Get-ChildItem -path "$ENV:ProgramData\Microsoft\Crypto\RSA\MachineKeys" -Filter $uniqueKeyContainerName
 
-		if ($permission.read)
-		{
-			$permissionRule = $username,"Read","Allow"
-			$accessRule = new-object System.Security.AccessControl.FileSystemAccessRule $permissionRule
-			$certificatePermissions.AddAccessRule($accessRule)
-		}
+    if(!$certificateFile) {
+        throw "Could not find private key file at $("$ENV:ProgramData\Microsoft\Crypto\RSA\MachineKeys\$UniqueKeyContainerName")"
+    }
 
-		if ($permission.fullControl)
-		{
-			$permissionRule = $username,"FullControl","Allow"
-			$accessRule = new-object System.Security.AccessControl.FileSystemAccessRule $permissionRule
-			$certificatePermissions.AddAccessRule($accessRule)
-		}
+    $certificatePermissions = $certificateFile.GetAccessControl("Access")
+    
+    $permissions | %{
+        $permission = $_
+        $username =  Format-AccountName $permission.Username
 
-		if ($permission.specialPermissions)
-		{
-			$permissionRule = $username,"SpecialPermissions","Allow"
-			$accessRule = new-object System.Security.AccessControl.FileSystemAccessRule $permissionRule
-			$certificatePermissions.AddAccessRule($accessRule)
-		}
-	}
+        if ($permission.read)
+        {
+            $permissionRule = $username,"Read","Allow"
+            $accessRule = new-object System.Security.AccessControl.FileSystemAccessRule $permissionRule
+            $certificatePermissions.AddAccessRule($accessRule)
+        }
 
-	if ($certificatePermissions)
-	{
-		Set-Acl $certificateFile.FullName $certificatePermissions
-	}
+        if ($permission.fullControl)
+        {
+            $permissionRule = $username,"FullControl","Allow"
+            $accessRule = new-object System.Security.AccessControl.FileSystemAccessRule $permissionRule
+            $certificatePermissions.AddAccessRule($accessRule)
+        }
+    }
+
+    if ($certificatePermissions)
+    {
+        Set-Acl $certificateFile.FullName $certificatePermissions
+    }
 }

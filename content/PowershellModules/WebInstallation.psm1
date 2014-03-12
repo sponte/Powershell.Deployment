@@ -63,7 +63,7 @@ function Start-Websites {
 	}
 }
 
-function Version-Websites {
+function Get-MetadataForWebsites {
  param(        
         [Parameter(Mandatory = $true)]
         [string]
@@ -75,7 +75,7 @@ function Version-Websites {
 
 	foreach($site in @($configuration.configuration.sites.site)) {
 		if(!$site) { continue }
-		Version-Website $rootPath $site
+		Get-MetadataForWebsite $rootPath $site
 	}
 }
 
@@ -459,7 +459,7 @@ function Install-Website {
 	}
 }
 
-function Version-Website {
+function Get-MetadataForWebsite {
 	param(
 		[Parameter(Mandatory = $true)]
 		[string]
