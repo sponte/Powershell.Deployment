@@ -146,7 +146,7 @@ function Install-WindowsService {
 		$serviceConfig.account = Format-AccountName $serviceConfig.account
 	}
 
-	$service = Get-Service $serviceConfig.name -ErrorAction SilentlyContinue
+	$service = GetService $serviceConfig.name
 	if ($service -ne $null )
 	{
 		Uninstall-WindowsService `
@@ -220,7 +220,7 @@ function Install-NServiceBus {
 		$serviceConfig.account = Format-AccountName $serviceConfig.account
 	}
 
-	$service = Get-Service $serviceConfig.name -ErrorAction SilentlyContinue
+	$service = GetService $serviceConfig.name
 	if ($service -ne $null )
 	{
 		Uninstall-NserviceBus `
@@ -307,7 +307,7 @@ function Install-TopshelfService {
 		$serviceConfig.account = Format-AccountName $serviceConfig.account
 	}
 
-	$service = Get-Service $serviceConfig.name -ErrorAction SilentlyContinue
+	$service = GetService $serviceConfig.name
 	if ($service -ne $null )
 	{
 		Uninstall-TopshelfService `
@@ -365,7 +365,7 @@ function Uninstall-WindowsService {
 		$serviceConfig
 	)
 
-	$service = Get-Service $serviceConfig.name -ErrorAction SilentlyContinue
+	$service = GetService $serviceConfig.name
 	if ($service)
 	{
 		Stop-WindowsService -serviceConfig $serviceConfig
@@ -398,7 +398,7 @@ function Uninstall-NServiceBus {
 		$serviceConfig
 	)
 
-	$service = Get-Service $serviceConfig.name -ErrorAction SilentlyContinue
+	$service = GetService $serviceConfig.name
 	if ($service)
 	{
 		Stop-WindowsService -serviceConfig $serviceConfig
@@ -432,7 +432,7 @@ function Uninstall-TopshelfService {
 		$serviceConfig
 	)
 
-	$service = Get-Service $serviceConfig.name -ErrorAction SilentlyContinue
+	$service = GetService $serviceConfig.name
 	if ($service)
 	{
 		Stop-WindowsService -serviceConfig $serviceConfig
@@ -473,7 +473,7 @@ function Stop-WindowsService {
 		$serviceConfig
 	)
 
-	$service = get-service $serviceConfig.name -ErrorAction SilentlyContinue
+	$service = GetService $serviceConfig.name
 	if($service) {
 		Stop-Service $serviceConfig.name
 	} else {
@@ -488,7 +488,7 @@ function Start-WindowsService {
 		$serviceConfig
 	)
 
-	$service = get-service $serviceConfig.name -ErrorAction SilentlyContinue
+	$service = GetService $serviceConfig.name
 	if($service) {
 		Start-Service $serviceConfig.name
 	} else {
@@ -562,4 +562,18 @@ function Get-MetadataForTopshelfService {
 	$metaData = @()
     $metaData += Get-MetaDataFromAssembly -assemblyFilePath $servicePath 
     return $metaData
+}
+
+function GetService {
+    param(   
+        [Parameter(Mandatory = $true)]
+        [string]
+        $serviceName
+    )
+
+    try {
+    	return Get-Service -name $serviceName -ErrorAction stop
+	} catch {
+		return $null
+	}
 }
