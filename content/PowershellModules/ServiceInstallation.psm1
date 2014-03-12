@@ -340,12 +340,12 @@ function Install-TopshelfService {
 
 	$arguments = @()
 	$arguments += "install"
-	$arguments += "-servicename:$($serviceConfig.Name)"
-	$arguments += "-displayname:'$($serviceConfig.DisplayName)'"
+	$arguments += "-servicename `"$($serviceConfig.Name)`""
+	$arguments += "-displayname `"$($serviceConfig.DisplayName)`""
 
 	if(! [string]::IsNullOrEmpty($serviceConfig.account)) {
-		$arguments += "-username:$($serviceConfig.account)"
-		$arguments += "-password:$($serviceConfig.password)"
+		$arguments += "-username `"$($serviceConfig.account)`""
+		$arguments += "-password `"$($serviceConfig.password)`""
 	}
 
 	if($serviceConfig.serviceStartupType -eq "delayed-auto") {
@@ -441,7 +441,7 @@ function Uninstall-TopshelfService {
 
 		$arguments = @()
 		$arguments += "uninstall"
-		$arguments += "-servicename:$($serviceConfig.Name)"
+		$arguments += "-servicename `"$($serviceConfig.Name)`""
 
 		$binPath = $serviceConfig.path
 
