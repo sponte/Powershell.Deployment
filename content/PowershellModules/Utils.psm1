@@ -64,7 +64,7 @@ function Sync-Directory {
         $destinationPath        
     )
     
-    &robocopy "$sourcePath" "$destinationPath" /MIR /DCOPY:T
+    &robocopy "$sourcePath" "$destinationPath" /MIR
 }
 
 function Update-XmlConfig {
