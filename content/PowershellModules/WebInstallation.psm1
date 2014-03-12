@@ -1,10 +1,3 @@
-$m = Get-Module WebAdministration -ListAvailable
-if($m) {
-	Import-Module $m.Name
-} else {
-	Write-Warning "WebAdministration module is not installed. It is not required for all installations but if you're trying to configure a website your installation will fail"
-}
-
 function Install-Websites {
  param( 
 		[Parameter(Mandatory = $true)]       
@@ -348,7 +341,10 @@ function Install-Website {
 					if ($sslBinding.Thumbprint -eq $certificate.Thumbprint)
 					{
 						Write-Host "Certificate already installed in IIS"
-					} else {
+					} elseif ($sslBinding.Sites.Count -eq 0) {
+						Remove-Item "IIS:/sslbindings/$ip!$port"
+					}
+					else {
 						Throw "Cannot use two different certificates on the same ip address $ip and port $port. The certificate thumbprints are: $($sslBinding.Thumbprint) and $($certificate.Thumbprint)"
 					}
 				}
