@@ -571,9 +571,10 @@ function GetService {
         $serviceName
     )
 
-    try {
-    	return Get-Service -name $serviceName -ErrorAction stop
-	} catch {
-		return $null
-	}
+    $serviceObj =(Get-WmiObject Win32_Service -filter "name='$serviceName'")
+    if($serviceObj -eq $null) {
+    	return $null
+    }
+
+    return Get-Service -name $serviceName
 }
