@@ -358,13 +358,26 @@ function Install-Website {
 		if($siteConfig.path.StartsWith(".")) {
 			$siteConfig.path = (Join-Path $rootPath $siteConfig.path.SubString(1, $siteConfig.path.Length - 1)).ToString()
 		}
-	
+
+
 		Write-Log "Creating site $($siteConfig.name)"
-		$site = New-Item `
+		try {
+			$site = New-Item `
 					-ApplicationPool $siteConfig.appPool.Name `
 					-PhysicalPath $siteConfig.path `
 					-Path "IIS:/Sites/$($siteConfig.Name)" `
 					-Bindings $bindings
+		} catch [System.IndexOutOfRangeException] {
+			Write-Log "Ensuring that IIS uses random site ids"
+			Set-IisIncrementalSiteIdCreation -value $false
+
+			Write-Log "Creating site $($siteConfig.name) Attempt #2"
+			$site = New-Item `
+				-ApplicationPool $siteConfig.appPool.Name `
+				-PhysicalPath $siteConfig.path `
+				-Path "IIS:/Sites/$($siteConfig.Name)" `
+				-Bindings $bindings	
+		}
 
 		$bindingProtocols = ($siteConfig.bindings.binding | Select -ExpandProperty protocol) -join ","
 		Set-ItemProperty "IIS:/Sites/$($siteConfig.Name)" -Name enabledProtocols -value $bindingProtocols
