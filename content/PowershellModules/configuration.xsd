@@ -141,6 +141,12 @@
 
   <xs:complexType name="topic">
     <xs:sequence>
+      <xs:element name="authorizations" type="authorizations" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueServiceBusAuthorizationName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="name" />
+        </xs:unique>
+      </xs:element>      
       <xs:element name="subscriptions" type="subscriptions" minOccurs="0" maxOccurs="1">
         <xs:unique name="UniqueServiceBusSubscriptionName">
           <xs:selector xpath="./*" />
@@ -149,6 +155,19 @@
       </xs:element>
     </xs:sequence>
     <xs:attribute name="name" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="authorizations">
+    <xs:sequence>
+      <xs:element name="authorization" type="authorization" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="authorization">
+    <xs:attribute name="name" use="required" />
+    <xs:attribute name="manage" default="false" />
+    <xs:attribute name="send" default="false" />
+    <xs:attribute name="listen" default="false" />
   </xs:complexType>
 
   <xs:complexType name="subscriptions">

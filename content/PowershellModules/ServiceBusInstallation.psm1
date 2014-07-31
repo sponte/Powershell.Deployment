@@ -82,7 +82,7 @@ function Install-ServiceBus {
 
     foreach($serviceBusTopicConfig in @($serviceBusConfig.topics.topic)) {
         if(!$serviceBusTopicConfig) { continue }
-        Install-ServiceBusTopic -connectionString $connectionString -serviceBusTopicConfig $serviceBusTopicConfig
+        Install-ServiceBusTopic -connectionString $serviceBusConfig.connectionString -serviceBusTopicConfig $serviceBusTopicConfig
     }
 }
 
@@ -96,15 +96,40 @@ function Install-ServiceBusTopic {
         $serviceBusTopicConfig
     )
 
-    if (!(Test-SbTopic -connectionString $connectionString -name $serviceBusTopicConfig.Name)) {
-        New-SbTopic -connectionString $connectionString -name $serviceBusTopicConfig.Name
+    $topic = $serviceBusTopicConfig.Name
+
+    if (!(Test-SbTopic -connectionString $connectionString -name $topic)) {
+        Write-Log "Creating topic $subscription"
+        New-SbTopic -connectionString $connectionString -name $topic
     }
+
+    foreach($serviceBusAuthorizationConfig in @($serviceBusTopicConfig.authorizations.authorization)) {
+        if(!$serviceBusAuthorizationConfig) { continue }
+
+        Install-ServiceBusAuthorization -connectionString $connectionString -topic $topic -serviceBusAuthorizationConfig $serviceBusAuthorizationConfig
+    }  
 
     foreach($serviceBusSubscriptionConfig in @($serviceBusTopicConfig.subscriptions.subscription)) {
         if(!$serviceBusSubscriptionConfig) { continue }
 
-        Install-ServiceBusSubscription -connectionString $connectionString -serviceBusSubscriptionConfig $serviceBusSubscriptionConfig
+        Install-ServiceBusSubscription -connectionString $connectionString -topic $topic -serviceBusSubscriptionConfig $serviceBusSubscriptionConfig
     }
+}
+
+function Install-ServiceBusAuthorization {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $connectionString,    
+        [Parameter(Mandatory = $true)]
+        [string]
+        $topic, 
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $serviceBusAuthorizationConfig
+    )
+
+    Write-Warning "We dont support authorization yet"
 }
 
 function Install-ServiceBusSubscription {
@@ -120,12 +145,38 @@ function Install-ServiceBusSubscription {
         $serviceBusSubscriptionConfig
     )
 
-    if (!(Test-SbTopicSubscription -connectionString $connectionString -topic $topic -name $serviceBusSubscriptionConfig.Name)) {
-        New-SbTopicSubscription -connectionString $connectionString -topic $topic -name $serviceBusSubscriptionConfig.Name
+    $subscription = $serviceBusSubscriptionConfig.Name
+
+    if (!(Test-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription)) {
+        Write-Log "Creating subscription $subscription"
+        New-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription
+    }
+
+    foreach($serviceBusSubscriptionRuleConfig in @($serviceBusTopicConfig.rules.rule)) {
+        if(!$serviceBusSubscriptionRuleConfig) { continue }
+
+        Install-ServiceBusSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -serviceBusSubscriptionRuleConfig $serviceBusSubscriptionRuleConfig
     }
 }
 
+function Install-ServiceBusSubscriptionRule {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $connectionString,    
+        [Parameter(Mandatory = $true)]
+        [string]
+        $topic, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $subscription,         
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $serviceBusSubscriptionRuleConfig
+    )
 
+    Write-Warning "We dont support rules yet"
+}
 
 function Uninstall-ServiceBus {
     param(
@@ -136,8 +187,6 @@ function Uninstall-ServiceBus {
         [System.XML.XMLElement]
         $serviceBusConfig
     )
-
-    
 }
 
 function Get-MetadataForServiceBus {
@@ -145,7 +194,7 @@ function Get-MetadataForServiceBus {
         [Parameter(Mandatory = $true)]
         [System.XML.XMLElement]
         $serviceBusConfig
-    )   
+    )
 }
 
 function Get-SbTopic {
