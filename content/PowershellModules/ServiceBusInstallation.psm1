@@ -152,7 +152,7 @@ function Install-ServiceBusSubscription {
         New-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription
     }
 
-    foreach($serviceBusSubscriptionRuleConfig in @($serviceBusTopicConfig.rules.rule)) {
+    foreach($serviceBusSubscriptionRuleConfig in @($serviceBusSubscriptionConfig.rules.rule)) {
         if(!$serviceBusSubscriptionRuleConfig) { continue }
 
         Install-ServiceBusSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -serviceBusSubscriptionRuleConfig $serviceBusSubscriptionRuleConfig
@@ -175,7 +175,12 @@ function Install-ServiceBusSubscriptionRule {
         $serviceBusSubscriptionRuleConfig
     )
 
-    Write-Warning "We dont support rules yet"
+    $rule = $serviceBusSubscriptionRuleConfig.Name
+
+    if (!(Test-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule)) {
+        Write-Log "Creating subscription rule $rule"
+        New-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule -filter $serviceBusSubscriptionRuleConfig.filter -action $serviceBusSubscriptionRuleConfig.action
+    }
 }
 
 function Uninstall-ServiceBus {
@@ -308,7 +313,7 @@ function New-SbTopicSubscriptionRule {
         return
     }
 
-    $subscription = Get-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription
+    $subscriptionClient = [Microsoft.ServiceBus.Messaging.SubscriptionClient]::CreateFromConnectionString($connectionString, $topic, $subscription)
 
     $ruleDescription = New-Object Microsoft.ServiceBus.Messaging.RuleDescription
     $ruleDescription.Name = $name
@@ -320,6 +325,8 @@ function New-SbTopicSubscriptionRule {
     if ($action) {
         $ruleDescription.Action = New-Object Microsoft.ServiceBus.Messaging.SqlRuleAction $action
     }
+
+    $subscriptionClient.AddRule($ruleDescription)
 }
 
 function Remove-SbTopicSubscriptionRule {
@@ -331,7 +338,8 @@ function Remove-SbTopicSubscriptionRule {
         [string] $name
     )
 
-    $subscription = Get-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription
+    $subscriptionClient = [Microsoft.ServiceBus.Messaging.SubscriptionClient]::CreateFromConnectionString($connectionString, $topic, $subscription)
+    $subscriptionClient.RemoveRule($name)
 }
 
 function Get-SbTopicSubscriptionRule {
@@ -343,5 +351,25 @@ function Get-SbTopicSubscriptionRule {
         [string] $name
     )
 
-    $subscription = Get-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription
+    $namespaceManager = [Microsoft.ServiceBus.NamespaceManager]::CreateFromConnectionString($connectionString)
+    $namespaceManager.GetRules($topic, $subscription) | ?{$_.Name -eq $name}
+}
+
+function Test-SbTopicSubscriptionRule {
+    [CmdletBinding()]
+    param(
+        [string] $connectionString,
+        [string] $topic,
+        [string] $subscription,
+        [string] $name
+    )
+
+    $namespaceManager = [Microsoft.ServiceBus.NamespaceManager]::CreateFromConnectionString($connectionString)
+    $rules = $namespaceManager.GetRules($topic, $subscription) | ?{$_.Name -eq $name} 
+
+    if ($rules) {
+        return $true
+    } else {
+        return $false
+    }
 }
