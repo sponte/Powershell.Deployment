@@ -51,7 +51,7 @@ Copyright = '(c) 2014. All rights reserved.'
 RequiredModules = @("Utils")
 
 # Assemblies that must be loaded prior to importing this module
-RequiredAssemblies = @(".\Tools\Microsoft.ServiceBus.dll")
+RequiredAssemblies = @("Microsoft.ServiceBus.dll")
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
 # ScriptsToProcess = @()
