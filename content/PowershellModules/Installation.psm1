@@ -12,16 +12,13 @@
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
-    $serviceBusAvailable = Get-Module ServiceBus -ListAvailable
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
     Install-FilePermissions $rootPath $configuration
     Install-Certificates $rootPath $configuration
 
-    if ($serviceBusAvailable) {
-        Install-ServiceBuses $rootPath $configuration
-    }
+    Install-ServiceBuses $rootPath $configuration
 
     if ($webAdministrationAvailable) {
        Install-Websites $rootPath $configuration
@@ -43,7 +40,6 @@ function Stop-All {
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
-    $serviceBusAvailable = Get-Module ServiceBus -ListAvailable
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
@@ -53,9 +49,7 @@ function Stop-All {
     }
     Stop-Services $rootPath $configuration
 
-    if ($serviceBusAvailable) {
-        Stop-ServiceBuses $rootPath $configuration
-    }
+    Stop-ServiceBuses $rootPath $configuration
 }
 
 function Start-All {
@@ -72,7 +66,6 @@ function Start-All {
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
-    $serviceBusAvailable = Get-Module ServiceBus -ListAvailable
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
@@ -82,9 +75,7 @@ function Start-All {
     }
     Start-Services $rootPath $configuration
 
-    if ($serviceBusAvailable) {
-        Start-ServiceBuses $rootPath $configuration
-    }
+    Start-ServiceBuses $rootPath $configuration
 }
 
 
@@ -102,7 +93,6 @@ function Uninstall-All {
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
-    $serviceBusAvailable = Get-Module ServiceBus -ListAvailable
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
@@ -112,9 +102,7 @@ function Uninstall-All {
     }
     Uninstall-Services $rootPath $configuration
 
-    if ($serviceBusAvailable) {
-        Uninstall-ServiceBuses $rootPath $configuration
-    }
+    Uninstall-ServiceBuses $rootPath $configuration
 
     Uninstall-Certificates $rootPath $configuration
     Uninstall-FilePermissions $rootPath $configuration
@@ -134,7 +122,6 @@ function Get-Metadata {
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
-    $serviceBusAvailable = Get-Module ServiceBus -ListAvailable
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
@@ -143,9 +130,7 @@ function Get-Metadata {
         Get-MetadataForWebsites $rootPath $configuration
     }
 
-    if ($serviceBusAvailable) {
-        Get-MetadataForServiceBuses $rootPath $configuration
-    }
+    Get-MetadataForServiceBuses $rootPath $configuration
 
     Get-MetadataForServices $rootPath $configuration
 }

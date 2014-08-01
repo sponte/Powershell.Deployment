@@ -48,10 +48,10 @@ Copyright = '(c) 2014. All rights reserved.'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @("Utils", "ServiceBus")
+RequiredModules = @("Utils")
 
 # Assemblies that must be loaded prior to importing this module
-# RequiredAssemblies = @()
+RequiredAssemblies = @(".\Tools\Microsoft.ServiceBus.dll")
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
 # ScriptsToProcess = @()
