@@ -178,7 +178,10 @@ function Install-ServiceBusSubscriptionRule {
     $rule = $serviceBusSubscriptionRuleConfig.Name
 
     if (!(Test-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule)) {
-        Write-Log "Creating subscription rule $rule"
+        Write-Log "Creating subscription rule $rule"		
+		if (Test-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name '$Default') {
+			Remove-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name '$Default'
+		}
         New-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule -filter $serviceBusSubscriptionRuleConfig.filter -action $serviceBusSubscriptionRuleConfig.action
     }
 }
