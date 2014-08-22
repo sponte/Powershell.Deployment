@@ -102,6 +102,19 @@ function Update-TextConfig {
     $c | % { $_ -replace $search,$replace } | sc -Path $textFile
 }
 
+function Update-PropertiesConfig {
+    param(   
+        [string]$propertiesFile,
+        [string]$key,
+        [string]$value,
+        [string]$seperator = ':'
+    )
+    
+    $c = Get-Content -Encoding UTF8 $propertiesFile
+
+    $c | % { $_ -replace "($key\s*$seperator\s*)(.*)", "`${1}$value" } | sc -Path $propertiesFile
+}
+
 function Get-Configuration {
     param(        
         [Parameter(Mandatory = $true)]
@@ -457,16 +470,16 @@ function Read-ConfigurationTemplate {
 }
 
 function Test-JsonString {
-	param(        
+    param(        
         [string]$jsonString
     )
 
-	try {
-		$temp = $jsonString | ConvertFrom-Json
-		return $true
-	} catch {
-		return $false
-	}
+    try {
+        $temp = $jsonString | ConvertFrom-Json
+        return $true
+    } catch {
+        return $false
+    }
 }
 
 function Read-ConfigurationTokens {
@@ -476,24 +489,24 @@ function Read-ConfigurationTokens {
     
     Write-Verbose "Loading configuration tokens from $configPath"
 
-	$configuration = gc -Encoding UTF8 $configPath | Out-String | ConvertFrom-Json
-	$configuration | gm | ?{$_.MemberType -eq "NoteProperty"} | %{
-		if (Test-Path "env:\$($_.Name)") {
-			$settingValue = (get-item "env:$($_.Name)").Value
-			if ($settingValue -is "String" -and (Test-JsonString -jsonString $settingValue)) {
-				$settingValue = $settingValue | Out-String | ConvertFrom-Json
-			}
-			$configuration."$($_.Name)" =  $settingValue 
-		}
+    $configuration = gc -Encoding UTF8 $configPath | Out-String | ConvertFrom-Json
+    $configuration | gm | ?{$_.MemberType -eq "NoteProperty"} | %{
+        if (Test-Path "env:\$($_.Name)") {
+            $settingValue = (get-item "env:$($_.Name)").Value
+            if ($settingValue -is "String" -and (Test-JsonString -jsonString $settingValue)) {
+                $settingValue = $settingValue | Out-String | ConvertFrom-Json
+            }
+            $configuration."$($_.Name)" =  $settingValue 
+        }
 
-		if (Test-Path "variable:\$($_.Name)") {
-			$settingValue = Get-Variable -Name $_.Name -ValueOnly
-			if ($settingValue -is "String" -and (Test-JsonString -jsonString $settingValue)) {
-				$settingValue = $settingValue | Out-String | ConvertFrom-Json
-			}
-			$configuration."$($_.Name)" = $settingValue
-		}
-	}
+        if (Test-Path "variable:\$($_.Name)") {
+            $settingValue = Get-Variable -Name $_.Name -ValueOnly
+            if ($settingValue -is "String" -and (Test-JsonString -jsonString $settingValue)) {
+                $settingValue = $settingValue | Out-String | ConvertFrom-Json
+            }
+            $configuration."$($_.Name)" = $settingValue
+        }
+    }
 
     return $configuration
 }

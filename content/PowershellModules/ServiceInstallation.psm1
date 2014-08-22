@@ -23,6 +23,11 @@ function Install-Services {
 		if(!$service) { continue }
 		Install-TopshelfService -rootPath $rootPath -serviceConfig $service
 	}
+
+	foreach($service in @($configuration.configuration.services.JavaService)) {
+		if(!$service) { continue }
+		Install-JavaService -rootPath $rootPath -serviceConfig $service
+	}
 }
 
 function Uninstall-Services {
@@ -50,6 +55,11 @@ function Uninstall-Services {
 		Uninstall-TopshelfService -rootPath $rootPath -serviceConfig $service
 	}	
 
+	foreach($service in @($configuration.configuration.services.JavaService)) {
+		if(!$service) { continue }
+		#we don't want to reboot on every uninstall so use sc delete way
+		Uninstall-WindowsService -rootPath $rootPath -serviceConfig $service
+	}	
 }
 
 function Stop-Services {
@@ -73,6 +83,11 @@ function Stop-Services {
 	}
 
 	foreach($service in @($configuration.configuration.services.TopshelfService)) {
+		if(!$service) { continue }
+		Stop-WindowsService $service
+	}	
+
+	foreach($service in @($configuration.configuration.services.JavaService)) {
 		if(!$service) { continue }
 		Stop-WindowsService $service
 	}	
@@ -102,6 +117,11 @@ function Start-Services {
 		if(!$service) { continue }
 		Start-WindowsService $service
 	}	
+
+	foreach($service in @($configuration.configuration.services.JavaService)) {
+		if(!$service) { continue }
+		Start-WindowsService $service
+	}	
 }
 
 function Get-MetadataForServices {
@@ -127,6 +147,11 @@ function Get-MetadataForServices {
     foreach($service in @($configuration.configuration.services.TopshelfService)) {
         if(!$service) { continue }
         Get-MetadataForTopshelfService $service
+    }   
+
+    foreach($service in @($configuration.configuration.services.JavaService)) {
+        if(!$service) { continue }
+        Get-MetadataForJavaService $service
     }   
 }
 
@@ -355,6 +380,89 @@ function Install-TopshelfService {
 	Start-Process $binPath -Argument $arguments -Wait
 }
 
+function Install-JavaService {
+	param(
+		[Parameter(Mandatory = $true)]
+		[string]
+		$rootPath,	   
+        [Parameter(Mandatory = $true)]
+		[System.XML.XMLElement]
+		$serviceConfig
+	)
+
+	if($serviceConfig.account) {
+		$serviceConfig.account = Format-AccountName $serviceConfig.account
+	}
+
+	$service = GetService $serviceConfig.name
+	if ($service -ne $null )
+	{
+		Uninstall-JavaService `
+			-rootPath $rootPath `
+			-serviceConfig $serviceConfig			
+	}	
+
+	# install the service
+
+	$serviceStartUpType = "delayed-auto"
+
+	if ([string]::IsNullOrEmpty($serviceConfig.serviceStartupType) -eq $false)
+	{
+		$serviceStartUpType = $serviceConfig.serviceStartupType
+	}
+
+	$binPath = $serviceConfig.path
+
+	if($binPath.StartsWith(".")) {
+		$binPath = (Join-Path $rootPath $binPath.SubString(1, $binPath.Length - 1)).ToString()
+	}
+
+	$servicePath = Join-Path $rootPath "deployment\PowershellModules\Tools\prunsrv.exe"
+	$destinationPath = "$(split-path $binPath)\prunsrv.exe"
+	if (-not (Test-Path $destinationPath)) {
+		copy-item $servicePath $destinationPath
+	}
+	$servicePath = $destinationPath
+
+	$arguments = @()
+	$arguments += "//IS//$($serviceConfig.Name)"
+	$arguments += "--Classpath=`"$binPath`""
+	$arguments += "--DisplayName=`"$($serviceConfig.DisplayName)`""
+	$arguments += "--Install=$destinationPath"
+	$arguments += "--Jvm=auto"
+
+	# Start
+	$arguments += "--StartMode=$($serviceConfig.StartMode)"
+	$arguments += "--StartClass=$($serviceConfig.StartClass)"
+	$arguments += "--StartMethod=$($serviceConfig.StartMethod)"
+	if ($serviceConfig.StartParams)
+	{
+		$arguments += "--StartParams=$($serviceConfig.StartParams)"
+	}
+	
+	# Stop
+	$arguments += "--StopMode=$($serviceConfig.StopMode)"
+	$arguments += "--StopClass=$($serviceConfig.StopClass)"
+	$arguments += "--StopMethod=$($serviceConfig.StopMethod)"
+	if ($serviceConfig.StopParams)
+	{
+		$arguments += "--StopParams=$($serviceConfig.StopParams)"
+	}
+
+	if(![string]::IsNullOrEmpty($serviceConfig.account)) {
+		$arguments += "--User=`"$($serviceConfig.account)`""
+		$arguments += "--Password=`"$($serviceConfig.password)`""
+		$arguments += "--ServiceUser=`"$($serviceConfig.account)`""
+		$arguments += "--ServicePassword=`"$($serviceConfig.password)`""
+	}
+
+	Write-Host "$servicePath $($arguments -join " ")"
+	Start-Process $servicePath -Argument $arguments -Wait
+
+	$configureServiceStartup = "sc.exe config $($serviceConfig.name) start= $serviceStartUpType"
+	Invoke-Expression -Command $configureServiceStartup -ErrorAction Stop
+}
+
 function Uninstall-WindowsService {
 	param(
 		[Parameter(Mandatory = $true)]
@@ -422,6 +530,7 @@ function Uninstall-NServiceBus {
 		}
 	}
 }
+
 function Uninstall-TopshelfService {
 	param(
 		[Parameter(Mandatory = $true)]
@@ -561,6 +670,17 @@ function Get-MetadataForTopshelfService {
 
 	$metaData = @()
     $metaData += Get-MetaDataFromAssembly -assemblyFilePath $servicePath 
+    return $metaData
+}
+
+function Get-MetadataForJavaService {
+    param(   
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $serviceConfig
+    )
+
+	$metaData = @()    
     return $metaData
 }
 

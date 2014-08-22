@@ -78,6 +78,7 @@
       <xs:element name="NServiceBus" type="NServiceBus" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="WindowsService" type="WindowsService" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="TopshelfService" type="TopshelfService" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="JavaService" type="JavaService" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -634,6 +635,36 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+
+  <xs:complexType name="JavaService" >
+    <xs:complexContent mixed="false">
+      <xs:extension base="service">
+        <xs:attribute name="path" type="xs:string" />
+        <xs:attribute name="startMode" type="javaServiceMode" default="Java" />
+        <xs:attribute name="startClass" type="xs:string" />
+        <xs:attribute name="startMethod" type="xs:string" default="main" />
+        <xs:attribute name="startParams" type="xs:string" />
+        <xs:attribute name="stopMode" type="javaServiceMode" default="Java" />
+        <xs:attribute name="stopClass" type="xs:string" default="java.lang.System" />
+        <xs:attribute name="stopMethod" type="xs:string" default="exit" />
+        <xs:attribute name="stopParams" type="xs:string" />
+        <xs:attribute name="jvmOptions" type="xs:string" default="-Dapp.home=." />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:simpleType name="javaServiceMode">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="boot">
+        <xs:annotation>
+          <xs:documentation>The mode to use when starting or stoping java</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="jvm" />
+      <xs:enumeration value="Java" />
+      <xs:enumeration value="exe" />
+    </xs:restriction>
+  </xs:simpleType>  
 
   <xs:complexType name="NServiceBus" >
     <xs:complexContent mixed="false">
