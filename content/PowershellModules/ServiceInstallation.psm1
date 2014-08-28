@@ -417,8 +417,15 @@ function Install-JavaService {
 		$binPath = (Join-Path $rootPath $binPath.SubString(1, $binPath.Length - 1)).ToString()
 	}
 
+	$servicePath = Join-Path $rootPath "deployment\PowershellModules\Tools\Prunmgr.exe"
+	$destinationPath = "$(split-path $binPath)\$($serviceConfig.Name)w.exe"
+	if (-not (Test-Path $destinationPath)) {
+		copy-item $servicePath $destinationPath
+	}
+	$servicePath = $destinationPath	
+
 	$servicePath = Join-Path $rootPath "deployment\PowershellModules\Tools\prunsrv.exe"
-	$destinationPath = "$(split-path $binPath)\prunsrv.exe"
+	$destinationPath = "$(split-path $binPath)\$($serviceConfig.Name).exe"
 	if (-not (Test-Path $destinationPath)) {
 		copy-item $servicePath $destinationPath
 	}
