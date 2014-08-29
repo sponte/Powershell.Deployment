@@ -202,15 +202,15 @@ function Install-ServiceBusSubscriptionRule {
         if ($topicSubscriptionRule) {
             $shouldDeleteRule = $false
 
-            if ($topicSubscriptionRule.Filter -is [Microsoft.ServiceBus.Messaging.SqlFilter] -and ([Microsoft.ServiceBus.Messaging.SqlFilter]$topicSubscriptionRule.Filter).SqlExpression -ne $action) {
+            if ($topicSubscriptionRule.Filter.GetType().Name -eq 'SqlFilter' -and $topicSubscriptionRule.Filter.SqlExpression -ne $action) {
                 $shouldDeleteRule = $true
             }
 
-            if ($topicSubscriptionRule.Action -is [Microsoft.ServiceBus.Messaging.SqlRuleAction] -and ([Microsoft.ServiceBus.Messaging.SqlRuleAction]$topicSubscriptionRule.Action).SqlExpression -ne $action) {
+            if ($topicSubscriptionRule.Action.GetType().Name -eq 'SqlRuleAction' -and $topicSubscriptionRule.Action.SqlExpression -ne $action) {
                 $shouldDeleteRule = $true
             }
 
-            if ($topicSubscriptionRule.Action -is [Microsoft.ServiceBus.Messaging.EmptyRuleAction] -and $action)  {
+            if ($topicSubscriptionRule.Action.GetType().Name -eq 'EmptyRuleAction' -and $action)  {
                 $shouldDeleteRule = $true
             }
         } else {
