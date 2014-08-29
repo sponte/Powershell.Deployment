@@ -33,6 +33,12 @@
             <xs:field xpath="connectionString" />
           </xs:unique>
         </xs:element>
+        <xs:element name="prtgMonitors" type="prtgMonitors" minOccurs="0" maxOccurs="1">
+          <xs:unique name="UniquePrtgMonitors">
+            <xs:selector xpath="./*" />
+            <xs:field xpath="PrtgUrl" />
+          </xs:unique>
+        </xs:element>
       </xs:sequence>
       <xs:attribute name="defaultHost" default="localhost" />
       <xs:attribute name="componentName" use="required">
@@ -65,8 +71,54 @@
     <xs:sequence>
       <xs:element name="serviceBus" type="serviceBus" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>
-  </xs:complexType>  
-  
+  </xs:complexType>
+
+  <xs:complexType name="prtgMonitors">
+    <xs:sequence>
+      <xs:element name="prtgMonitor" type="prtgMonitor" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>    
+  </xs:complexType>
+
+  <xs:complexType name="prtgMonitor">
+    <xs:sequence>
+      <xs:element name="sensors" type="sensors" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueSensorsName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="SensorName" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="url"  use="required"  />
+    <xs:attribute name="login"  use="required"  />
+    <xs:attribute name="passwordHash"  use="required"  >
+      <xs:annotation>
+        <xs:documentation>The passhash for a user account is shown on the user account settings page .</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="sensors">
+    <xs:sequence>
+      <xs:element name="sensor" type="sensor" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="sensor">
+    <xs:attribute name="baseSensorId"  use="required"  >
+      <xs:annotation>
+        <xs:documentation>The id of the sensor to copy as a basis for this new sensor as per PRTG api limitations</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="sensorDeviceId"  use="required" >
+      <xs:annotation>
+        <xs:documentation>Click on the device in PRTG and copy the id value from the querystring</xs:documentation>
+      </xs:annotation>    
+    </xs:attribute>
+    <xs:attribute name="sensorName"  use="required" />
+    <xs:attribute name="sensorUrl"  use="required"  />
+    <xs:attribute name="deleteOnUninstall" default="false" type="xs:boolean"  />
+  </xs:complexType>
+
   <xs:complexType name="certificates">
     <xs:sequence>
       <xs:element name="certificate" type="certificate" minOccurs="1" maxOccurs="unbounded" />

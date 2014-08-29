@@ -24,7 +24,11 @@
        Install-Websites $rootPath $configuration
     }
     Install-Services $rootPath $configuration
+
+	Install-PrtgMonitors $rootPath $configuration
+	
 }
+
 
 function Stop-All {
     param( 
@@ -50,6 +54,9 @@ function Stop-All {
     Stop-Services $rootPath $configuration
 
     Stop-ServiceBuses $rootPath $configuration
+
+	Stop-PrtgMonitors $rootPath $configuration
+	
 }
 
 function Start-All {
@@ -76,6 +83,8 @@ function Start-All {
     Start-Services $rootPath $configuration
 
     Start-ServiceBuses $rootPath $configuration
+
+	Start-PrtgMonitors $rootPath $configuration
 }
 
 
@@ -106,6 +115,8 @@ function Uninstall-All {
 
     Uninstall-Certificates $rootPath $configuration
     Uninstall-FilePermissions $rootPath $configuration
+	Uninstall-PrtgMonitors $rootPath $configuration
+
 }
 
 function Get-Metadata {
