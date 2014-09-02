@@ -164,6 +164,7 @@ function Install-PrtgSensor {
 	$sensorName = $sensorConfig.sensorName
 	$sensorUrl = $sensorConfig.sensorUrl
 	
+	Write-Log "Install Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a Exist"
 	&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a Install
 
 }
@@ -196,6 +197,7 @@ function Remove-PrtgSensor {
 	    $sensorName = $sensorConfig.sensorName
 	    $sensorUrl = $sensorConfig.sensorUrl
 	
+		Write-Log "Delete Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a Exist"
 	    &$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a delete
 	}
     else	
@@ -230,6 +232,7 @@ function Stop-PrtgSensor {
 	$sensorName = $sensorConfig.sensorName
 	$sensorUrl = $sensorConfig.sensorUrl
 	
+	Write-Log "Pause Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a Exist"
 	&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a pause
 
 }
@@ -260,6 +263,7 @@ function Start-PrtgSensor {
 	$sensorName = $sensorConfig.sensorName
 	$sensorUrl = $sensorConfig.sensorUrl
 	
+	Write-Log "Resume Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a Exist"
 	&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a resume
 
 }
@@ -289,6 +293,7 @@ function Test-PrtgSensor {
 	$sensorName = $sensorConfig.sensorName
 	$sensorUrl = $sensorConfig.sensorUrl
 	
+	Write-Log "Checking Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a Exist"
 	$exists = &$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a Exist
 	return $exists -eq "true"
 
