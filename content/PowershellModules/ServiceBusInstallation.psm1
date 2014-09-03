@@ -153,12 +153,13 @@ function Install-ServiceBusSubscription {
     $ErrorActionPreference = "stop"
 
     $subscription = $serviceBusSubscriptionConfig.Name
+	$requiresSession = $serviceBusSubscriptionConfig.RequiresSession -eq $true
 
     if (!(Test-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription)) {
         Write-Log "Creating subscription $subscription"
 
         try{   
-            New-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription
+            New-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription -requiresSession $requiresSession
         } Catch [Microsoft.ServiceBus.Messaging.MessagingEntityAlreadyExistsException] {
             Write-Warning "Topic subscription $subscription already exists, unable to create it"
         }
@@ -339,11 +340,13 @@ function New-SbTopicSubscription {
     param(
         [string] $connectionString,
         [string] $topic,
-        [string] $name
+	    [string] $name,
+        [bool] $requiresSession
     )
 
     $namespaceManager = [Microsoft.ServiceBus.NamespaceManager]::CreateFromConnectionString($connectionString)
     $subscriptionDescription =  New-Object Microsoft.ServiceBus.Messaging.SubscriptionDescription $topic,$name
+	$subscriptionDescription.RequiresSession = $requiresSession
     
     $namespaceManager.CreateSubscription($subscriptionDescription)
 }

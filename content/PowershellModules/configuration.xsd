@@ -239,6 +239,7 @@
       </xs:element>
     </xs:sequence>
     <xs:attribute name="name" use="required" />
+    <xs:attribute name="requiresSession" type="xs:boolean" default="false" />
   </xs:complexType>
 
   <xs:complexType name="rules">
