@@ -97,7 +97,11 @@ function Remove-PrtgMonitor {
 
     foreach($sensorConfig in @($prtgMonitorConfig.sensors.sensor)) {
         if(!$sensorConfig) { continue }
-        Remove-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+		if(Test-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
+		{ 
+			Remove-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+		}		
+        
     }
 }
 
@@ -197,7 +201,7 @@ function Remove-PrtgSensor {
 	    $sensorName = $sensorConfig.sensorName
 	    $sensorUrl = $sensorConfig.sensorUrl
 	
-		Write-Log "Delete Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a Exist"
+		Write-Log "Delete Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a delete"
 	    &$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a delete
 	}
     else	
