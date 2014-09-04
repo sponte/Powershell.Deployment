@@ -99,10 +99,10 @@ function Remove-PrtgMonitor {
         if(!$sensorConfig) { continue }
 		if(Test-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
 		{ 
-			Remove-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
-		}		
-        
+        Remove-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
     }
+        
+}
 }
 
 
@@ -193,7 +193,7 @@ function Remove-PrtgSensor {
         $passwordHash 
     )
 
-    if($sensorConfig.deleteOnUninstall)
+    if($sensorConfig.deleteOnUninstall -eq $true -or $sensorConfig.deleteOnUninstall -eq 1 )
 	{
 		$apiPath = Join-Path $rootPath "deployment\PowershellModules\Tools\PrtgSetupTool.exe"
 	    $baseSensorId = $sensorConfig.baseSensorId
@@ -206,7 +206,7 @@ function Remove-PrtgSensor {
 	}
     else	
     {
-        host-write "Removal of sensor not allowed"
+        Write-Log "Removal of sensor not allowed"
     }
 
 }
