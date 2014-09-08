@@ -132,12 +132,18 @@ function Stop-PrtgMonitor {
 
     foreach($sensorConfig in @($prtgMonitorConfig.sensors.sensor)) {
         if(!$sensorConfig) { continue }
-        Stop-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+        if(Test-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
+		{ 
+            Stop-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+        }
     }
 
     foreach($sensorConfig in @($prtgMonitorConfig.serviceBusSubscribeSensors.serviceBusSubscribeSensor)) {
         if(!$sensorConfig) { continue }
-        Stop-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+        if(Test-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
+		{ 
+            Stop-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+        }
     }
 }
 
@@ -153,11 +159,17 @@ function Start-PrtgMonitor {
 
     foreach($sensorConfig in @($prtgMonitorConfig.sensors.sensor)) {
         if(!$sensorConfig) { continue }
-        Start-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+        if(Test-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
+		{ 
+            Start-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+        }
     }
     foreach($sensorConfig in @($prtgMonitorConfig.serviceBusSubscribeSensors.serviceBusSubscribeSensor)) {
         if(!$sensorConfig) { continue }
-        Start-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+        if(Test-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
+		{ 
+            Start-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+        }
     }
 }
 
@@ -190,7 +202,7 @@ function Install-PrtgSensor {
 	$sensorName = $sensorConfig.sensorName
 	$sensorUrl = $sensorConfig.sensorUrl
 	
-	Write-Log "Install Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a Exist"
+	Write-Log "Install Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a Install"
 	&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a Install
 
 }
@@ -223,7 +235,7 @@ function Remove-PrtgSensor {
 	    $sensorName = $sensorConfig.sensorName
 	    $sensorUrl = $sensorConfig.sensorUrl
 	
-		Write-Log "Delete Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a delete"
+		Write-Log "Delete Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a delete"
 	    &$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a delete
 	}
     else	
@@ -258,7 +270,7 @@ function Stop-PrtgSensor {
 	$sensorName = $sensorConfig.sensorName
 	$sensorUrl = $sensorConfig.sensorUrl
 	
-	Write-Log "Pause Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a Exist"
+	Write-Log "Pause Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a pause"
 	&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a pause
 
 }
@@ -289,7 +301,7 @@ function Start-PrtgSensor {
 	$sensorName = $sensorConfig.sensorName
 	$sensorUrl = $sensorConfig.sensorUrl
 	
-	Write-Log "Resume Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a Exist"
+	Write-Log "Resume Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a resume"
 	&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a resume
 
 }
@@ -319,7 +331,7 @@ function Test-PrtgSensor {
 	$sensorName = $sensorConfig.sensorName
 	$sensorUrl = $sensorConfig.sensorUrl
 	
-	Write-Log "Checking Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -s $sensorUrl -a Exist"
+	Write-Log "Checking Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a Exist"
 	$exists = &$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a Exist
 	return $exists -eq "true"
 
