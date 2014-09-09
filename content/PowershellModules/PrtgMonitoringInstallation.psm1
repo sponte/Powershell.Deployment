@@ -134,17 +134,17 @@ function Stop-PrtgMonitor {
         if(!$sensorConfig) { continue }
         if(Test-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
 		{ 
-            Stop-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
-        }
+        Stop-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+    }
     }
 
     foreach($sensorConfig in @($prtgMonitorConfig.serviceBusSubscribeSensors.serviceBusSubscribeSensor)) {
         if(!$sensorConfig) { continue }
         if(Test-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
 		{ 
-            Stop-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
-        }
+        Stop-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
     }
+}
 }
 
 function Start-PrtgMonitor {
@@ -161,16 +161,16 @@ function Start-PrtgMonitor {
         if(!$sensorConfig) { continue }
         if(Test-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
 		{ 
-            Start-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
-        }
+        Start-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+    }
     }
     foreach($sensorConfig in @($prtgMonitorConfig.serviceBusSubscribeSensors.serviceBusSubscribeSensor)) {
         if(!$sensorConfig) { continue }
         if(Test-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
 		{ 
-            Start-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
-        }
+        Start-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
     }
+}
 }
 
 # Methods for single items PrtgSensor
@@ -370,7 +370,7 @@ function Install-PrtgServiceBusSubscribeSensors {
     
     Write-Log "Install PrtgServiceBusSubscribeSensors  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$sensorParameter`" -a Install"
 	#&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a Install
-    $tmp = "$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a Install"
+    $tmp = "`"`"$apiPath`" -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a Install`""	
     #Workaround for powershel not being able to escape quotes in commands
     cmd /c $tmp         
 
@@ -407,7 +407,7 @@ function Remove-PrtgServiceBusSubscribeSensors {
 	
         Write-Log "Delete PrtgServiceBusSubscribeSensors  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$sensorParameter`" -a delete"
 	    #&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a Install
-        $tmp = "$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a delete"
+        $tmp = "`"`"$apiPath`" -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a delete`""
         #Workaround for powershel not being able to escape quotes in commands
         cmd /c $tmp    		
 	}
@@ -444,9 +444,10 @@ function Stop-PrtgServiceBusSubscribeSensors {
 	$sensorParameter = "-connectionString  '$($sensorConfig.connectionString)' -topic '$($sensorConfig.subscriptionTopic)' -subscriptionName '$($sensorConfig.subscriptionName)'"
 	
     Write-Log "Pause PrtgServiceBusSubscribeSensors  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$sensorParameter`" -r:`"Pause for deployment`" -a pause"
+
 	#&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a Install
-    $tmp = "$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -r:`"Pause for deployment`" -a pause"
-    #Workaround for powershel not being able to escape quotes in commands
+    $tmp = "`"`"$apiPath`" -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -r:`"Pause for deployment`" -a pause`""
+    #Workaround for powershel not being able to escape quotes in commands	
     cmd /c $tmp  		
 
 }
@@ -479,7 +480,7 @@ function Start-PrtgServiceBusSubscribeSensors {
 	
     Write-Log "Resume PrtgServiceBusSubscribeSensors  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$sensorParameter`" -a resume"
 	#&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a Install
-    $tmp = "$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a resume"
+    $tmp = "`"`"$apiPath`" -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a resume`""
     #Workaround for powershel not being able to escape quotes in commands
     cmd /c $tmp  			
 }
@@ -511,7 +512,7 @@ function Test-PrtgServiceBusSubscribeSensors {
 	
     Write-Log "Checking PrtgServiceBusSubscribeSensors  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$sensorParameter`" -a Exist"
 	#&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a Install
-    $tmp = "$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a Exist"
+    $tmp = "`"`"$apiPath`" -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a Exist`""
     #Workaround for powershel not being able to escape quotes in commands
     cmd /c $tmp  		
 
