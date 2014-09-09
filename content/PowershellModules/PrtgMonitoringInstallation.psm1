@@ -270,8 +270,8 @@ function Stop-PrtgSensor {
 	$sensorName = $sensorConfig.sensorName
 	$sensorUrl = $sensorConfig.sensorUrl
 	
-	Write-Log "Pause Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a pause"
-	&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a pause
+	Write-Log "Pause Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -r:`"Pause for deployment`"  -a pause"
+	&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -r:`"Pause for deployment`"  -a pause
 
 }
 
@@ -443,9 +443,9 @@ function Stop-PrtgServiceBusSubscribeSensors {
 	$sensorName = $sensorConfig.sensorName
 	$sensorParameter = "-connectionString  '$($sensorConfig.connectionString)' -topic '$($sensorConfig.subscriptionTopic)' -subscriptionName '$($sensorConfig.subscriptionName)'"
 	
-    Write-Log "Pause PrtgServiceBusSubscribeSensors  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$sensorParameter`" -a pause"
+    Write-Log "Pause PrtgServiceBusSubscribeSensors  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$sensorParameter`" -r:`"Pause for deployment`" -a pause"
 	#&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a Install
-    $tmp = "$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a pause"
+    $tmp = "$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -r:`"Pause for deployment`" -a pause"
     #Workaround for powershel not being able to escape quotes in commands
     cmd /c $tmp  		
 
