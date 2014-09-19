@@ -220,7 +220,7 @@ function Install-ServiceBusSubscriptionRule {
 
         if ($shouldDeleteRule) {
             Write-Log "Rule $rule has been changed, so deleting it"
-            Remove-SbTopicSubscriptionRule -connectionString $connectionString -topic $true -subscription $subscription -name $rule
+            Remove-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule
         }
     }
 
