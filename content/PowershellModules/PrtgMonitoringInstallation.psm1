@@ -142,8 +142,9 @@ function Stop-PrtgMonitor {
         if(!$sensorConfig) { continue }
         if(Test-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
 		{ 
+        Write-Output "Stop PrtgServiceBusSubscribeSensors"
         Stop-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
-    }
+        }
 }
 }
 
@@ -160,16 +161,17 @@ function Start-PrtgMonitor {
     foreach($sensorConfig in @($prtgMonitorConfig.sensors.sensor)) {
         if(!$sensorConfig) { continue }
         if(Test-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
-		{ 
-        Start-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
-    }
+		{             
+            Start-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+        }
     }
     foreach($sensorConfig in @($prtgMonitorConfig.serviceBusSubscribeSensors.serviceBusSubscribeSensor)) {
         if(!$sensorConfig) { continue }
         if(Test-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
 		{ 
+        Write-Output "Start PrtgServiceBusSubscribeSensors"
         Start-PrtgServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
-    }
+        }
 }
 }
 
@@ -514,8 +516,10 @@ function Test-PrtgServiceBusSubscribeSensors {
 	#&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a Install
     $tmp = "`"`"$apiPath`" -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p:`"$($sensorParameter)`" -a Exist`""
     #Workaround for powershel not being able to escape quotes in commands
-    cmd /c $tmp  		
-
+    $exist = &cmd /c $tmp  		
+    Write-Log "Exists returned $exist"         
+    return [System.Convert]::ToBoolean($exist) 
+    
 }
 
 
