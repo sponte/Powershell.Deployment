@@ -27,6 +27,12 @@
             <xs:field xpath="name" />
           </xs:unique>
         </xs:element>
+        <xs:element name="serviceBuses" type="serviceBuses" minOccurs="0" maxOccurs="1">
+          <xs:unique name="UniqueServiceBuses">
+            <xs:selector xpath="./*" />
+            <xs:field xpath="connectionString" />
+          </xs:unique>
+        </xs:element>
       </xs:sequence>
       <xs:attribute name="defaultHost" default="localhost" />
       <xs:attribute name="componentName" use="required">
@@ -54,6 +60,12 @@
       <xs:element name="filePermission" type="filePermission" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>
   </xs:complexType>
+
+  <xs:complexType name="serviceBuses">
+    <xs:sequence>
+      <xs:element name="serviceBus" type="serviceBus" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>  
   
   <xs:complexType name="certificates">
     <xs:sequence>
@@ -83,6 +95,18 @@
     <xs:attribute name="removeOnUninstall" default="false" type="xs:boolean" />
   </xs:complexType>
 
+  <xs:complexType name="serviceBus">
+    <xs:sequence>
+      <xs:element name="topics" type="topics" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueServiceBusTopicName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="name" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="connectionString" use="required" />
+  </xs:complexType>
+
   <xs:complexType name="certificate">
     <xs:sequence>
       <xs:element name="content" type="xs:string" minOccurs="1" maxOccurs="1" nillable="false"/>
@@ -107,6 +131,73 @@
     <xs:sequence>
       <xs:element name="fileSystemRight" type="fileSystemRight" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="topics">
+    <xs:sequence>
+      <xs:element name="topic" type="topic" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="topic">
+    <xs:sequence>
+      <xs:element name="authorizations" type="authorizations" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueServiceBusAuthorizationName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="name" />
+        </xs:unique>
+      </xs:element>      
+      <xs:element name="subscriptions" type="subscriptions" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueServiceBusSubscriptionName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="name" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="authorizations">
+    <xs:sequence>
+      <xs:element name="authorization" type="authorization" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="authorization">
+    <xs:attribute name="name" use="required" />
+    <xs:attribute name="manage" default="false" />
+    <xs:attribute name="send" default="false" />
+    <xs:attribute name="listen" default="false" />
+  </xs:complexType>
+
+  <xs:complexType name="subscriptions">
+    <xs:sequence>
+      <xs:element name="subscription" type="subscription" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="subscription">
+    <xs:sequence>
+      <xs:element name="rules" type="rules" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueServiceBusRuleName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="name" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="rules">
+    <xs:sequence>
+      <xs:element name="rule" type="rule" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="rule">
+    <xs:attribute name="name" use="required" />
+    <xs:attribute name="filter" default="1=1" />
+    <xs:attribute name="action" />
   </xs:complexType>
 
   <xs:complexType name="certificatePermissions">
@@ -186,10 +277,10 @@
     <xs:attribute name="propagationType" default="None" type="fileSystemRightPropagationType" />
     <xs:attribute name="appendData" default="false" type="xs:boolean" >
       <xs:annotation>
-				<xs:documentation>
+        <xs:documentation>
           Specifies the right to append data to the end of a file.
         </xs:documentation>
-			</xs:annotation>
+      </xs:annotation>
     </xs:attribute>
     <xs:attribute name="changePermissions" default="false" type="xs:boolean" >
       <xs:annotation>

@@ -456,6 +456,19 @@ function Read-ConfigurationTemplate {
     return [string]::Join("`n", (gc -Encoding UTF8 $configPath))
 }
 
+function Test-JsonString {
+	param(        
+        [string]$jsonString
+    )
+
+	try {
+		$temp = $jsonString | ConvertFrom-Json
+		return $true
+	} catch {
+		return $false
+	}
+}
+
 function Read-ConfigurationTokens {
     param(        
         [string]$configPath
