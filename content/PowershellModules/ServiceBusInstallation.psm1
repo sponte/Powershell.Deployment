@@ -95,12 +95,18 @@ function Install-ServiceBusTopic {
         [System.XML.XMLElement]
         $serviceBusTopicConfig
     )
+    $ErrorActionPreference = "stop"
 
     $topic = $serviceBusTopicConfig.Name
 
     if (!(Test-SbTopic -connectionString $connectionString -name $topic)) {
         Write-Log "Creating topic $subscription"
-        New-SbTopic -connectionString $connectionString -name $topic
+        
+        try{   
+            New-SbTopic -connectionString $connectionString -name $topic
+        } Catch [Microsoft.ServiceBus.Messaging.MessagingEntityAlreadyExistsException] {
+            Write-Warning "Topic $topic already exists, unable to create it"
+        }
     }
 
     foreach($serviceBusAuthorizationConfig in @($serviceBusTopicConfig.authorizations.authorization)) {
@@ -144,12 +150,19 @@ function Install-ServiceBusSubscription {
         [System.XML.XMLElement]
         $serviceBusSubscriptionConfig
     )
+    $ErrorActionPreference = "stop"
 
     $subscription = $serviceBusSubscriptionConfig.Name
+	$requiresSession = $serviceBusSubscriptionConfig.RequiresSession -eq $true
 
     if (!(Test-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription)) {
         Write-Log "Creating subscription $subscription"
-        New-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription
+
+        try{   
+            New-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription -requiresSession $requiresSession
+        } Catch [Microsoft.ServiceBus.Messaging.MessagingEntityAlreadyExistsException] {
+            Write-Warning "Topic subscription $subscription already exists, unable to create it"
+        }
     }
 
     foreach($serviceBusSubscriptionRuleConfig in @($serviceBusSubscriptionConfig.rules.rule)) {
@@ -174,12 +187,51 @@ function Install-ServiceBusSubscriptionRule {
         [System.XML.XMLElement]
         $serviceBusSubscriptionRuleConfig
     )
+    $ErrorActionPreference = "stop"
 
     $rule = $serviceBusSubscriptionRuleConfig.Name
+    $filter = $serviceBusSubscriptionRuleConfig.filter
+    $action = $serviceBusSubscriptionRuleConfig.action
+
+	if (Test-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name '$Default') {
+		Remove-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name '$Default'
+	}
+
+    if (Test-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule) {
+        $topicSubscriptionRule = Get-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule
+
+        if ($topicSubscriptionRule) {
+            $shouldDeleteRule = $false
+
+            if ($topicSubscriptionRule.Filter.GetType().Name -eq 'SqlFilter' -and $topicSubscriptionRule.Filter.SqlExpression -ne $action) {
+                $shouldDeleteRule = $true
+            }
+
+            if ($topicSubscriptionRule.Action.GetType().Name -eq 'SqlRuleAction' -and $topicSubscriptionRule.Action.SqlExpression -ne $action) {
+                $shouldDeleteRule = $true
+            }
+
+            if ($topicSubscriptionRule.Action.GetType().Name -eq 'EmptyRuleAction' -and $action)  {
+                $shouldDeleteRule = $true
+            }
+        } else {
+            $shouldDeleteRule = $true
+        }
+
+        if ($shouldDeleteRule) {
+            Write-Log "Rule $rule has been changed, so deleting it"
+            Remove-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule
+        }
+    }
 
     if (!(Test-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule)) {
         Write-Log "Creating subscription rule $rule"
-        New-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule -filter $serviceBusSubscriptionRuleConfig.filter -action $serviceBusSubscriptionRuleConfig.action
+
+        try{   
+            New-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule -filter $filter -action $action
+        } Catch [Microsoft.ServiceBus.Messaging.MessagingEntityAlreadyExistsException] {
+            Write-Warning "Topic subscription rule $rule already exists, unable to create it"
+        }        
     }
 }
 
@@ -288,11 +340,13 @@ function New-SbTopicSubscription {
     param(
         [string] $connectionString,
         [string] $topic,
-        [string] $name
+	    [string] $name,
+        [bool] $requiresSession
     )
 
     $namespaceManager = [Microsoft.ServiceBus.NamespaceManager]::CreateFromConnectionString($connectionString)
     $subscriptionDescription =  New-Object Microsoft.ServiceBus.Messaging.SubscriptionDescription $topic,$name
+	$subscriptionDescription.RequiresSession = $requiresSession
     
     $namespaceManager.CreateSubscription($subscriptionDescription)
 }
