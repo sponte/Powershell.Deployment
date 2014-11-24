@@ -102,6 +102,19 @@ function Update-TextConfig {
     $c | % { $_ -replace $search,$replace } | sc -Path $textFile
 }
 
+function Update-PropertiesConfig {
+    param(   
+        [string]$propertiesFile,
+        [string]$key,
+        [string]$value,
+        [string]$seperator = ':'
+    )
+    
+    $c = Get-Content -Encoding UTF8 $propertiesFile
+
+    $c | % { $_ -replace "($key\s*$seperator\s*)(.*)", "`${1}$value" } | sc -Path $propertiesFile
+}
+
 function Get-Configuration {
     param(        
         [Parameter(Mandatory = $true)]
@@ -456,13 +469,46 @@ function Read-ConfigurationTemplate {
     return [string]::Join("`n", (gc -Encoding UTF8 $configPath))
 }
 
+function Test-JsonString {
+    param(        
+        [string]$jsonString
+    )
+
+    try {
+        $temp = $jsonString | ConvertFrom-Json
+        return $true
+    } catch {
+        return $false
+    }
+}
+
 function Read-ConfigurationTokens {
     param(        
         [string]$configPath
     )
     
     Write-Verbose "Loading configuration tokens from $configPath"
-    return gc -Encoding UTF8 $configPath | Out-String | ConvertFrom-Json
+
+    $configuration = gc -Encoding UTF8 $configPath | Out-String | ConvertFrom-Json
+
+    $configuration | gm | ?{$_.MemberType -eq "NoteProperty"} | %{
+       if (Test-Path "env:\$($_.Name)") {
+            $settingValue = (get-item "env:$($_.Name)").Value
+            if ($settingValue -is "String" -and (Test-JsonString -jsonString $settingValue)) {
+                $settingValue = $settingValue | Out-String | ConvertFrom-Json
+            }
+            $configuration."$($_.Name)" =  $settingValue 
+        }
+        if (Test-Path "variable:\$($_.Name)") {
+            $settingValue = Get-Variable -Name $_.Name -ValueOnly
+            if ($settingValue -is "String" -and (Test-JsonString -jsonString $settingValue)) {
+                $settingValue = $settingValue | Out-String | ConvertFrom-Json
+            }
+            $configuration."$($_.Name)" = $settingValue
+        }
+    }
+
+    return $configuration
 }
 
 function Merge-Tokens {
@@ -546,3 +592,44 @@ function Get-MetaDataFromAssembly {
 
     $metaData
 }
+
+function Test-JsonString {
+    param(        
+    [string]$jsonString
+    )
+
+    try {
+        $temp = $jsonString | ConvertFrom-Json
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+function Test-IisIncrementalSiteIdCreation {
+    $registryEntry = Get-ItemProperty 'HKLM:\Software\Microsoft\Inetmgr\Parameters\'
+    if ($registryEntry.IncrementalSiteIDCreation -eq "1") {
+        return $true
+    } else {
+        return $false
+    }
+}
+
+function Set-IisIncrementalSiteIdCreation {
+    param(
+        [bool] $value
+    )
+
+    if ($value -eq (Test-IisIncrementalSiteIdCreation)) {
+        return
+    }
+
+    if ($value) {
+        Set-ItemProperty -Path 'HKLM:\Software\Microsoft\Inetmgr\Parameters\' -Name IncrementalSiteIDCreation -Value 1
+    } else {
+        Set-ItemProperty -Path 'HKLM:\Software\Microsoft\Inetmgr\Parameters\' -Name IncrementalSiteIDCreation -Value 0
+    }
+
+    Restart-Service W3SVC,WAS -force
+}
+

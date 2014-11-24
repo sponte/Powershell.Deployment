@@ -27,6 +27,18 @@
             <xs:field xpath="name" />
           </xs:unique>
         </xs:element>
+        <xs:element name="serviceBuses" type="serviceBuses" minOccurs="0" maxOccurs="1">
+          <xs:unique name="UniqueServiceBuses">
+            <xs:selector xpath="./*" />
+            <xs:field xpath="connectionString" />
+          </xs:unique>
+        </xs:element>
+        <xs:element name="prtgMonitors" type="prtgMonitors" minOccurs="0" maxOccurs="1">
+          <xs:unique name="UniquePrtgMonitors">
+            <xs:selector xpath="./*" />
+            <xs:field xpath="PrtgUrl" />
+          </xs:unique>
+        </xs:element>
       </xs:sequence>
       <xs:attribute name="defaultHost" default="localhost" />
       <xs:attribute name="componentName" use="required">
@@ -54,7 +66,101 @@
       <xs:element name="filePermission" type="filePermission" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>
   </xs:complexType>
-  
+
+  <xs:complexType name="serviceBuses">
+    <xs:sequence>
+      <xs:element name="serviceBus" type="serviceBus" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="prtgMonitors">
+    <xs:sequence>
+      <xs:element name="prtgMonitor" type="prtgMonitor" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>    
+  </xs:complexType>
+
+  <xs:complexType name="prtgMonitor">
+    <xs:sequence>
+      <xs:element name="sensors" type="sensors" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueSensorsName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="SensorName" />
+        </xs:unique>
+      </xs:element>
+      <xs:element name="serviceBusSubscribeSensors" type="serviceBusSubscribeSensors" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueSubscribeSensorsName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="SensorName" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="url"  use="required"  />
+    <xs:attribute name="login"  use="required"  />
+    <xs:attribute name="passwordHash"  use="required"  >
+      <xs:annotation>
+        <xs:documentation>The passhash for a user account is shown on the user account settings page .</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="sensors">
+    <xs:sequence>
+      <xs:element name="sensor" type="sensor" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="sensor">
+    <xs:attribute name="baseSensorId"  use="required"  >
+      <xs:annotation>
+        <xs:documentation>The id of the sensor to copy as a basis for this new sensor as per PRTG api limitations</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="sensorDeviceId"  use="required" >
+      <xs:annotation>
+        <xs:documentation>Click on the device in PRTG and copy the id value from the querystring</xs:documentation>
+      </xs:annotation>    
+    </xs:attribute>
+    <xs:attribute name="sensorName"  use="required" />
+    <xs:attribute name="sensorUrl"  use="required"  />
+    <xs:attribute name="deleteOnUninstall" default="false" type="xs:boolean"  />
+  </xs:complexType>
+
+  <xs:complexType name="serviceBusSubscribeSensors">
+    <xs:sequence>
+      <xs:element name="serviceBusSubscribeSensor" type="serviceBusSubscribeSensor" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="serviceBusSubscribeSensor">
+    <xs:attribute name="connectionString"  use="required"  >
+      <xs:annotation>
+        <xs:documentation>The servicebus connection string</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="subscriptionTopic"  use="required"  >
+      <xs:annotation>
+        <xs:documentation>The topic of this subscription</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="subscriptionName"  use="required"  >
+      <xs:annotation>
+        <xs:documentation>The name of this subscription</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="sensorName"  use="required" />
+    <xs:attribute name="baseSensorId"  use="required"  >
+      <xs:annotation>
+        <xs:documentation>The id of the sensor to copy as a basis for this new sensor as per PRTG api limitations</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="sensorDeviceId"  use="required" >
+      <xs:annotation>
+        <xs:documentation>Click on the device in PRTG and copy the id value from the querystring</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>    
+    <xs:attribute name="deleteOnUninstall" default="false" type="xs:boolean"  />
+  </xs:complexType>
+
   <xs:complexType name="certificates">
     <xs:sequence>
       <xs:element name="certificate" type="certificate" minOccurs="1" maxOccurs="unbounded" />
@@ -66,6 +172,7 @@
       <xs:element name="NServiceBus" type="NServiceBus" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="WindowsService" type="WindowsService" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="TopshelfService" type="TopshelfService" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="JavaService" type="JavaService" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -81,6 +188,18 @@
     <xs:attribute name="name" use="required" />
     <xs:attribute name="path" use="required" />
     <xs:attribute name="removeOnUninstall" default="false" type="xs:boolean" />
+  </xs:complexType>
+
+  <xs:complexType name="serviceBus">
+    <xs:sequence>
+      <xs:element name="topics" type="topics" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueServiceBusTopicName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="name" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="connectionString" use="required" />
   </xs:complexType>
 
   <xs:complexType name="certificate">
@@ -107,6 +226,74 @@
     <xs:sequence>
       <xs:element name="fileSystemRight" type="fileSystemRight" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="topics">
+    <xs:sequence>
+      <xs:element name="topic" type="topic" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="topic">
+    <xs:sequence>
+      <xs:element name="authorizations" type="authorizations" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueServiceBusAuthorizationName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="name" />
+        </xs:unique>
+      </xs:element>      
+      <xs:element name="subscriptions" type="subscriptions" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueServiceBusSubscriptionName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="name" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="authorizations">
+    <xs:sequence>
+      <xs:element name="authorization" type="authorization" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="authorization">
+    <xs:attribute name="name" use="required" />
+    <xs:attribute name="manage" default="false" />
+    <xs:attribute name="send" default="false" />
+    <xs:attribute name="listen" default="false" />
+  </xs:complexType>
+
+  <xs:complexType name="subscriptions">
+    <xs:sequence>
+      <xs:element name="subscription" type="subscription" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="subscription">
+    <xs:sequence>
+      <xs:element name="rules" type="rules" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueServiceBusRuleName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="name" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" use="required" />
+    <xs:attribute name="requiresSession" type="xs:boolean" default="false" />
+  </xs:complexType>
+
+  <xs:complexType name="rules">
+    <xs:sequence>
+      <xs:element name="rule" type="rule" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="rule">
+    <xs:attribute name="name" use="required" />
+    <xs:attribute name="filter" default="1=1" />
+    <xs:attribute name="action" />
   </xs:complexType>
 
   <xs:complexType name="certificatePermissions">
@@ -186,10 +373,10 @@
     <xs:attribute name="propagationType" default="None" type="fileSystemRightPropagationType" />
     <xs:attribute name="appendData" default="false" type="xs:boolean" >
       <xs:annotation>
-				<xs:documentation>
+        <xs:documentation>
           Specifies the right to append data to the end of a file.
         </xs:documentation>
-			</xs:annotation>
+      </xs:annotation>
     </xs:attribute>
     <xs:attribute name="changePermissions" default="false" type="xs:boolean" >
       <xs:annotation>
@@ -543,6 +730,36 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+
+  <xs:complexType name="JavaService" >
+    <xs:complexContent mixed="false">
+      <xs:extension base="service">
+        <xs:attribute name="path" type="xs:string" />
+        <xs:attribute name="startMode" type="javaServiceMode" default="Java" />
+        <xs:attribute name="startClass" type="xs:string" />
+        <xs:attribute name="startMethod" type="xs:string" default="main" />
+        <xs:attribute name="startParams" type="xs:string" />
+        <xs:attribute name="stopMode" type="javaServiceMode" default="Java" />
+        <xs:attribute name="stopClass" type="xs:string" default="java.lang.System" />
+        <xs:attribute name="stopMethod" type="xs:string" default="exit" />
+        <xs:attribute name="stopParams" type="xs:string" />
+        <xs:attribute name="jvmOptions" type="xs:string" default="-Dapp.home=." />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:simpleType name="javaServiceMode">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="boot">
+        <xs:annotation>
+          <xs:documentation>The mode to use when starting or stoping java</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="jvm" />
+      <xs:enumeration value="Java" />
+      <xs:enumeration value="exe" />
+    </xs:restriction>
+  </xs:simpleType>  
 
   <xs:complexType name="NServiceBus" >
     <xs:complexContent mixed="false">
