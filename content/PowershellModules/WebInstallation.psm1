@@ -246,12 +246,20 @@ function Install-ApplicationPool {
 	$appPool.managedRuntimeVersion = $appPoolConfig.frameworkVersion
 	$appPool.managedPipelineMode = $appPoolConfig.managedPipelineMode
 	
-	if(![string]::IsNullOrEmpty($appPoolConfig.account)) {
+	if(![string]::IsNullOrEmpty($appPoolConfig.account) -and $appPoolConfig.account -ne "NetworkService" -and $appPoolConfig.account -ne "Network Service" -and $appPoolConfig.account -ne "ApplicationPoolIdentity" -and $appPoolConfig.account -ne "Application Pool Identity" -and $appPoolConfig.account -ne "LocalService" -and $appPoolConfig.account -ne "Local Service" -and $appPoolConfig.account -ne "LocalSystem" -and $appPoolConfig.account -ne "Local System") {
 		$appPool.processModel.username = Format-AccountName $appPoolConfig.account
 		$appPool.processModel.password = $appPoolConfig.password
 		$appPool.processModel.identityType = "SpecificUser"
 	} else {
-		$appPool.processModel.identityType = "NetworkService"
+		if ($appPoolConfig.account -eq "ApplicationPoolIdentity" -or $appPoolConfig.account -eq "Application Pool Identity"){
+			$appPool.processModel.identityType = "ApplicationPoolIdentity"
+		} else if ($appPoolConfig.account -eq "LocalSystem" -or $appPoolConfig.account -eq "Local System"){
+			$appPool.processModel.identityType = "LocalSystem"
+		} else if ($appPoolConfig.account -eq "LocalService" -or $appPoolConfig.account -eq "Local Service"){
+			$appPool.processModel.identityType = "LocalService"
+		} else {
+			$appPool.processModel.identityType = "NetworkService"
+		}
 	}
 
 	$appPool | Set-Item

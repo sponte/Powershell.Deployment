@@ -543,7 +543,19 @@ function Format-AccountName {
         return $account
     }
 
-    if ($account -eq "Network Service") {
+    if ($account -eq "LocalService" -or $account -eq "Local Service") {
+        return $account
+    }
+
+    if ($account -eq "LocalSystem" -or $account -eq "Local System") {
+        return $account
+    }
+
+    if ($account -eq "Network Service" -or $account -eq "NetworkService") {
+        return $account
+    }
+
+    if ($account -eq "Application Pool Identity" -or $account -eq "ApplicationPoolIdentity") {
         return $account
     }
 
