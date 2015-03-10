@@ -253,9 +253,9 @@ function Install-ApplicationPool {
 	} else {
 		if ($appPoolConfig.account -eq "ApplicationPoolIdentity" -or $appPoolConfig.account -eq "Application Pool Identity"){
 			$appPool.processModel.identityType = "ApplicationPoolIdentity"
-		} else if ($appPoolConfig.account -eq "LocalSystem" -or $appPoolConfig.account -eq "Local System"){
+		} elseif ($appPoolConfig.account -eq "LocalSystem" -or $appPoolConfig.account -eq "Local System"){
 			$appPool.processModel.identityType = "LocalSystem"
-		} else if ($appPoolConfig.account -eq "LocalService" -or $appPoolConfig.account -eq "Local Service"){
+		} elseif ($appPoolConfig.account -eq "LocalService" -or $appPoolConfig.account -eq "Local Service"){
 			$appPool.processModel.identityType = "LocalService"
 		} else {
 			$appPool.processModel.identityType = "NetworkService"
