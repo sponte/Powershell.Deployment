@@ -12,8 +12,8 @@
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
-    $serviceBusAvailable = Test-Path "$rootPath\PowershellModules\Deployment\Tools\Microsoft.ServiceBus.dll"
-    $prtgAvailable = Test-Path "$rootPath\PowershellModules\Deployment\Tools\PrtgSetupTool.exe"
+    $serviceBusAvailable = Test-Path "$rootPath\PowershellModules\Tools\Microsoft.ServiceBus.dll"
+    $prtgAvailable = Test-Path "$rootPath\PowershellModules\Tools\PrtgSetupTool.exe"
 
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
@@ -49,8 +49,8 @@ function Stop-All {
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
-    $serviceBusAvailable = Test-Path "$rootPath\PowershellModules\Deployment\Tools\Microsoft.ServiceBus.dll"
-    $prtgAvailable = Test-Path "$rootPath\PowershellModules\Deployment\Tools\PrtgSetupTool.exe"
+    $serviceBusAvailable = Test-Path "$rootPath\PowershellModules\Tools\Microsoft.ServiceBus.dll"
+    $prtgAvailable = Test-Path "$rootPath\PowershellModules\Tools\PrtgSetupTool.exe"
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
@@ -83,8 +83,8 @@ function Start-All {
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
-    $serviceBusAvailable = Test-Path "$rootPath\PowershellModules\Deployment\Tools\Microsoft.ServiceBus.dll"
-    $prtgAvailable = Test-Path "$rootPath\PowershellModules\Deployment\Tools\PrtgSetupTool.exe"
+    $serviceBusAvailable = Test-Path "$rootPath\PowershellModules\Tools\Microsoft.ServiceBus.dll"
+    $prtgAvailable = Test-Path "$rootPath\PowershellModules\Tools\PrtgSetupTool.exe"
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
@@ -118,8 +118,8 @@ function Uninstall-All {
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
-    $serviceBusAvailable = Test-Path "$rootPath\PowershellModules\Deployment\Tools\Microsoft.ServiceBus.dll"
-    $prtgAvailable = Test-Path "$rootPath\PowershellModules\Deployment\Tools\PrtgSetupTool.exe"
+    $serviceBusAvailable = Test-Path "$rootPath\PowershellModules\Tools\Microsoft.ServiceBus.dll"
+    $prtgAvailable = Test-Path "$rootPath\PowershellModules\Tools\PrtgSetupTool.exe"
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
@@ -155,8 +155,8 @@ function Get-Metadata {
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
-    $serviceBusAvailable = Test-Path "$rootPath\PowershellModules\Deployment\Tools\Microsoft.ServiceBus.dll"
-    $prtgAvailable = Test-Path "$rootPath\PowershellModules\Deployment\Tools\PrtgSetupTool.exe"
+    $serviceBusAvailable = Test-Path "$rootPath\PowershellModules\Tools\Microsoft.ServiceBus.dll"
+    $prtgAvailable = Test-Path "$rootPath\PowershellModules\Tools\PrtgSetupTool.exe"
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
