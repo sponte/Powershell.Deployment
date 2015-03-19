@@ -246,12 +246,20 @@ function Install-ApplicationPool {
 	$appPool.managedRuntimeVersion = $appPoolConfig.frameworkVersion
 	$appPool.managedPipelineMode = $appPoolConfig.managedPipelineMode
 	
-	if(![string]::IsNullOrEmpty($appPoolConfig.account)) {
+	if(![string]::IsNullOrEmpty($appPoolConfig.account) -and $appPoolConfig.account -ne "NetworkService" -and $appPoolConfig.account -ne "Network Service" -and $appPoolConfig.account -ne "ApplicationPoolIdentity" -and $appPoolConfig.account -ne "Application Pool Identity" -and $appPoolConfig.account -ne "LocalService" -and $appPoolConfig.account -ne "Local Service" -and $appPoolConfig.account -ne "LocalSystem" -and $appPoolConfig.account -ne "Local System") {
 		$appPool.processModel.username = Format-AccountName $appPoolConfig.account
 		$appPool.processModel.password = $appPoolConfig.password
 		$appPool.processModel.identityType = "SpecificUser"
 	} else {
-		$appPool.processModel.identityType = "NetworkService"
+		if ($appPoolConfig.account -eq "ApplicationPoolIdentity" -or $appPoolConfig.account -eq "Application Pool Identity"){
+			$appPool.processModel.identityType = "ApplicationPoolIdentity"
+		} elseif ($appPoolConfig.account -eq "LocalSystem" -or $appPoolConfig.account -eq "Local System"){
+			$appPool.processModel.identityType = "LocalSystem"
+		} elseif ($appPoolConfig.account -eq "LocalService" -or $appPoolConfig.account -eq "Local Service"){
+			$appPool.processModel.identityType = "LocalService"
+		} else {
+			$appPool.processModel.identityType = "NetworkService"
+		}
 	}
 
 	$appPool | Set-Item
@@ -358,15 +366,15 @@ function Install-Website {
 		if($siteConfig.path.StartsWith(".")) {
 			$siteConfig.path = (Join-Path $rootPath $siteConfig.path.SubString(1, $siteConfig.path.Length - 1)).ToString()
 		}
-
-
+	
 		Write-Log "Creating site $($siteConfig.name)"
+
 		try {
 			$site = New-Item `
-					-ApplicationPool $siteConfig.appPool.Name `
-					-PhysicalPath $siteConfig.path `
-					-Path "IIS:/Sites/$($siteConfig.Name)" `
-					-Bindings $bindings
+ 				-ApplicationPool $siteConfig.appPool.Name `
+ 				-PhysicalPath $siteConfig.path `
+ 				-Path "IIS:/Sites/$($siteConfig.Name)" `
+ 				-Bindings $bindings
 		} catch [System.IndexOutOfRangeException] {
 			Write-Log "Ensuring that IIS uses random site ids"
 			Set-IisIncrementalSiteIdCreation -value $false

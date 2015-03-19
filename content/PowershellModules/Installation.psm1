@@ -12,21 +12,27 @@
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
-    
+    $serviceBusAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\Microsoft.ServiceBus.dll"
+
+    $prtgAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\PrtgSetupTool.exe"
+
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
     Install-FilePermissions $rootPath $configuration
     Install-Certificates $rootPath $configuration
 
-    Install-ServiceBuses $rootPath $configuration
+    if ($serviceBusAvailable) {
+        Install-ServiceBuses $rootPath $configuration
+    }
 
     if ($webAdministrationAvailable) {
        Install-Websites $rootPath $configuration
     }
     Install-Services $rootPath $configuration
 
-	Install-PrtgMonitors $rootPath $configuration
-	
+    if ($prtgAvailable) {
+       Install-PrtgMonitors $rootPath $configuration
+    }
 }
 
 
@@ -44,6 +50,8 @@ function Stop-All {
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
+    $serviceBusAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\Microsoft.ServiceBus.dll"
+    $prtgAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\PrtgSetupTool.exe"
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
@@ -53,10 +61,13 @@ function Stop-All {
     }
     Stop-Services $rootPath $configuration
 
-    Stop-ServiceBuses $rootPath $configuration
+    if ($serviceBusAvailable) {
+        Stop-ServiceBuses $rootPath $configuration
+    }
 
-	Stop-PrtgMonitors $rootPath $configuration
-	
+    if ($prtgAvailable) {
+       Stop-PrtgMonitors $rootPath $configuration
+    }
 }
 
 function Start-All {
@@ -73,6 +84,8 @@ function Start-All {
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
+    $serviceBusAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\Microsoft.ServiceBus.dll"
+    $prtgAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\PrtgSetupTool.exe"
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
@@ -82,9 +95,13 @@ function Start-All {
     }
     Start-Services $rootPath $configuration
 
-    Start-ServiceBuses $rootPath $configuration
+    if ($serviceBusAvailable) {
+        Start-ServiceBuses $rootPath $configuration
+    }
 
-	Start-PrtgMonitors $rootPath $configuration
+    if ($prtgAvailable) {
+       Start-PrtgMonitors $rootPath $configuration
+    }
 }
 
 
@@ -102,6 +119,8 @@ function Uninstall-All {
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
+    $serviceBusAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\Microsoft.ServiceBus.dll"
+    $prtgAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\PrtgSetupTool.exe"
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
@@ -111,12 +130,16 @@ function Uninstall-All {
     }
     Uninstall-Services $rootPath $configuration
 
-    Uninstall-ServiceBuses $rootPath $configuration
+    if ($serviceBusAvailable) {
+        Uninstall-ServiceBuses $rootPath $configuration
+    }
 
     Uninstall-Certificates $rootPath $configuration
     Uninstall-FilePermissions $rootPath $configuration
-	Uninstall-PrtgMonitors $rootPath $configuration
 
+    if ($prtgAvailable) {
+       Uninstall-PrtgMonitors $rootPath $configuration
+    }
 }
 
 function Get-Metadata {
@@ -133,6 +156,8 @@ function Get-Metadata {
     )
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
+    $serviceBusAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\Microsoft.ServiceBus.dll"
+    $prtgAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\PrtgSetupTool.exe"
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
@@ -141,7 +166,9 @@ function Get-Metadata {
         Get-MetadataForWebsites $rootPath $configuration
     }
 
-    Get-MetadataForServiceBuses $rootPath $configuration
+    if ($serviceBusAvailable) {
+        Get-MetadataForServiceBuses $rootPath $configuration
+    }
 
     Get-MetadataForServices $rootPath $configuration
 }

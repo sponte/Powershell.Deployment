@@ -60,7 +60,7 @@ function Project-Action {
 	
 	Write-Host "$($action)ing project $project" -Fore Green
 
-	$envConfpath = "$project\deployment\deployment_configuration.xml"
+	$envConfpath = "$project\deployment\deployment_configuration.json"
 
 	$buildPath = [string]::Empty
 	if(!(Is-WebProject "$root\$project")) {
