@@ -80,10 +80,45 @@ function Install-ServiceBus {
         $serviceBusConfig
     )
 
+    foreach($serviceBusTopicConfig in @($serviceBusConfig.queues.queue)) {
+        if(!$serviceBusTopicConfig) { continue }
+        Install-ServiceBusQueue -connectionString $serviceBusConfig.connectionString -serviceBusQueueConfig $serviceBusTopicConfig
+    }
+
     foreach($serviceBusTopicConfig in @($serviceBusConfig.topics.topic)) {
         if(!$serviceBusTopicConfig) { continue }
         Install-ServiceBusTopic -connectionString $serviceBusConfig.connectionString -serviceBusTopicConfig $serviceBusTopicConfig
     }
+}
+
+function Install-ServiceBusQueue {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $connectionString,     
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $serviceBusQueueConfig
+    )
+    $ErrorActionPreference = "stop"
+
+    $queue = $serviceBusQueueConfig.Name
+
+    if (!(Test-SbQueue -connectionString $connectionString -name $queue)) {
+        Write-Log "Creating queue $queue"
+        
+        try{   
+            New-SbQueue -connectionString $connectionString -name $queue
+        } Catch [Microsoft.ServiceBus.Messaging.MessagingEntityAlreadyExistsException] {
+            Write-Warning "Queue $queue already exists, unable to create it"
+        }
+    }
+
+    foreach($serviceBusQueueAuthorizationConfig in @($serviceBusQueueConfig.authorizations.authorization)) {
+        if(!$serviceBusQueueAuthorizationConfig) { continue }
+
+        Install-ServiceBusQueueAuthorization -connectionString $connectionString -queue $queue -serviceBusAuthorizationConfig $serviceBusQueueAuthorizationConfig
+    } 
 }
 
 function Install-ServiceBusTopic {
@@ -100,7 +135,7 @@ function Install-ServiceBusTopic {
     $topic = $serviceBusTopicConfig.Name
 
     if (!(Test-SbTopic -connectionString $connectionString -name $topic)) {
-        Write-Log "Creating topic $subscription"
+        Write-Log "Creating topic $topic"
         
         try{   
             New-SbTopic -connectionString $connectionString -name $topic
@@ -109,10 +144,10 @@ function Install-ServiceBusTopic {
         }
     }
 
-    foreach($serviceBusAuthorizationConfig in @($serviceBusTopicConfig.authorizations.authorization)) {
-        if(!$serviceBusAuthorizationConfig) { continue }
+    foreach($serviceBusTopicAuthorizationConfig in @($serviceBusTopicConfig.authorizations.authorization)) {
+        if(!$serviceBusTopicAuthorizationConfig) { continue }
 
-        Install-ServiceBusAuthorization -connectionString $connectionString -topic $topic -serviceBusAuthorizationConfig $serviceBusAuthorizationConfig
+        Install-ServiceBusTopicAuthorization -connectionString $connectionString -topic $topic -serviceBusTopicAuthorizationConfig $serviceBusTopicAuthorizationConfig
     }  
 
     foreach($serviceBusSubscriptionConfig in @($serviceBusTopicConfig.subscriptions.subscription)) {
@@ -122,7 +157,23 @@ function Install-ServiceBusTopic {
     }
 }
 
-function Install-ServiceBusAuthorization {
+function Install-ServiceBusQueueAuthorization {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $connectionString,    
+        [Parameter(Mandatory = $true)]
+        [string]
+        $queue, 
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $serviceBusQueueAuthorizationConfig
+    )
+
+    Write-Warning "We dont support authorization yet"
+}
+
+function Install-ServiceBusTopicAuthorization {
     param(
         [Parameter(Mandatory = $true)]
         [string]
@@ -132,7 +183,7 @@ function Install-ServiceBusAuthorization {
         $topic, 
         [Parameter(Mandatory = $true)]
         [System.XML.XMLElement]
-        $serviceBusAuthorizationConfig
+        $serviceBusTopicAuthorizationConfig
     )
 
     Write-Warning "We dont support authorization yet"
@@ -244,6 +295,52 @@ function Uninstall-ServiceBus {
         [System.XML.XMLElement]
         $serviceBusConfig
     )
+
+    foreach($serviceBusTopicConfig in @($serviceBusConfig.queues.queue)) {
+        if(!$serviceBusTopicConfig) { continue }
+        Uninstall-ServiceBusQueue -connectionString $serviceBusConfig.connectionString -$serviceBusQueueConfig $serviceBusTopicConfig
+    }
+
+    foreach($serviceBusTopicConfig in @($serviceBusConfig.topics.topic)) {
+        if(!$serviceBusTopicConfig) { continue }
+        Uninstall-ServiceBusTopic -connectionString $serviceBusConfig.connectionString -serviceBusTopicConfig $serviceBusTopicConfig
+    }
+}
+
+function Uninstall-ServiceBusQueue {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $connectionString,     
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $serviceBusQueueConfig
+    )
+    $ErrorActionPreference = "stop"
+
+    $queue = $serviceBusQueueConfig.Name
+
+    if ((Test-SbQueue -connectionString $connectionString -name $queue)) {
+        Write-Log "Not removing queue $queue"
+    }
+}
+
+function Uninstall-ServiceBusTopic {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $connectionString,     
+        [Parameter(Mandatory = $true)]
+        [System.XML.XMLElement]
+        $serviceBusTopicConfig
+    )
+    $ErrorActionPreference = "stop"
+
+    $topic = $serviceBusTopicConfig.Name
+
+    if (!(Test-SbTopic -connectionString $connectionString -name $topic)) {
+        Write-Log "Not removing topic $topic"
+    }
 }
 
 function Get-MetadataForServiceBus {
@@ -252,6 +349,17 @@ function Get-MetadataForServiceBus {
         [System.XML.XMLElement]
         $serviceBusConfig
     )
+}
+
+function Get-SbQueue {
+    [CmdletBinding()]
+    param(
+        [string] $connectionString,
+        [string] $name
+    )
+
+    $namespaceManager = [Microsoft.ServiceBus.NamespaceManager]::CreateFromConnectionString($connectionString)
+    $namespaceManager.GetQueue($name)
 }
 
 function Get-SbTopic {
@@ -265,6 +373,17 @@ function Get-SbTopic {
     $namespaceManager.GetTopic($name)
 }
 
+function Test-SbQueue {
+    [CmdletBinding()]
+    param(
+        [string] $connectionString,
+        [string] $name
+    )
+
+    $namespaceManager = [Microsoft.ServiceBus.NamespaceManager]::CreateFromConnectionString($connectionString)
+    $namespaceManager.QueueExists($name)
+}
+
 function Test-SbTopic {
     [CmdletBinding()]
     param(
@@ -276,6 +395,17 @@ function Test-SbTopic {
     $namespaceManager.TopicExists($name)
 }
 
+function Remove-SbQueue {
+    [CmdletBinding()]
+    param(
+        [string] $connectionString,
+        [string] $name
+    )
+
+    $namespaceManager = [Microsoft.ServiceBus.NamespaceManager]::CreateFromConnectionString($connectionString)
+    $namespaceManager.DeleteQueue($name)
+}
+
 function Remove-SbTopic {
     [CmdletBinding()]
     param(
@@ -285,6 +415,18 @@ function Remove-SbTopic {
 
     $namespaceManager = [Microsoft.ServiceBus.NamespaceManager]::CreateFromConnectionString($connectionString)
     $namespaceManager.DeleteTopic($name)
+}
+
+function New-SbQueue {
+    [CmdletBinding()]
+    param(
+        [string] $connectionString,
+        [string] $name
+    )
+
+    $namespaceManager = [Microsoft.ServiceBus.NamespaceManager]::CreateFromConnectionString($connectionString)
+    $queueDescription = New-Object Microsoft.ServiceBus.Messaging.QueueDescription $name
+    $namespaceManager.CreateQueue($queueDescription)
 }
 
 function New-SbTopic {
