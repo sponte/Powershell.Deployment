@@ -123,6 +123,7 @@
     <xs:attribute name="sensorName"  use="required" />
     <xs:attribute name="sensorUrl"  use="required"  />
     <xs:attribute name="deleteOnUninstall" default="false" type="xs:boolean"  />
+    <xs:attribute name="sensorTimeout"  use="optional" default="0" />
   </xs:complexType>
 
   <xs:complexType name="serviceBusSubscribeSensors">
@@ -192,6 +193,12 @@
 
   <xs:complexType name="serviceBus">
     <xs:sequence>
+      <xs:element name="queues" type="queues" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueServiceBusQueueName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="name" />
+        </xs:unique>
+      </xs:element>
       <xs:element name="topics" type="topics" minOccurs="0" maxOccurs="1">
         <xs:unique name="UniqueServiceBusTopicName">
           <xs:selector xpath="./*" />
@@ -234,16 +241,34 @@
     </xs:sequence>
   </xs:complexType>
 
+  <xs:complexType name="queues">
+    <xs:sequence>
+      <xs:element name="queue" type="queue" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="queue">
+    <xs:sequence>
+      <xs:element name="authorizations" type="authorizations" minOccurs="0" maxOccurs="1">
+        <xs:unique name="UniqueServiceBusQueueAuthorizationName">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="name" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" use="required" />
+  </xs:complexType>
+
   <xs:complexType name="topic">
     <xs:sequence>
       <xs:element name="authorizations" type="authorizations" minOccurs="0" maxOccurs="1">
-        <xs:unique name="UniqueServiceBusAuthorizationName">
+        <xs:unique name="UniqueServiceBusTopicAuthorizationName">
           <xs:selector xpath="./*" />
           <xs:field xpath="name" />
         </xs:unique>
       </xs:element>      
       <xs:element name="subscriptions" type="subscriptions" minOccurs="0" maxOccurs="1">
-        <xs:unique name="UniqueServiceBusSubscriptionName">
+        <xs:unique name="UniqueServiceBusTopicSubscriptionName">
           <xs:selector xpath="./*" />
           <xs:field xpath="name" />
         </xs:unique>
@@ -260,6 +285,7 @@
 
   <xs:complexType name="authorization">
     <xs:attribute name="name" use="required" />
+    <xs:attribute name="value" use="required" />
     <xs:attribute name="manage" default="false" />
     <xs:attribute name="send" default="false" />
     <xs:attribute name="listen" default="false" />
