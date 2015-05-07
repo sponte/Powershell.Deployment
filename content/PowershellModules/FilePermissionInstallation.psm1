@@ -31,7 +31,6 @@ function Uninstall-FilePermissions {
 }
 
 # Methods
-
 function Uninstall-FilePermission {
 	param(
  		[Parameter(Mandatory = $true)]       
@@ -54,8 +53,14 @@ function Uninstall-FilePermission {
 		foreach($fileSystemRight in @($filePermission.fileSystemRights.fileSystemRight)) {
 			$acl=get-acl $path
 
-			$username = Format-AccountName $fileSystemRight.Username
-		
+			$securityIdentifier = Get-SecurityIdentifier -username $fileSystemRight.Username
+
+			if ($securityIdentifier){
+				$username = $securityIdentifier
+			} else {
+				$username = Format-AccountName $fileSystemRight.Username
+			}
+
 			$InheritanceFlags = @()
 			$containerInherit = $fileSystemRight.containerInherit -eq $true
 			$objectInherit = $fileSystemRight.objectInherit -eq $true
@@ -246,8 +251,14 @@ function Install-FilePermission {
 
 		$acl=get-acl $path
 
-		$username = Format-AccountName $fileSystemRight.Username
-		
+		$securityIdentifier = Get-SecurityIdentifier -username $fileSystemRight.Username
+
+		if ($securityIdentifier){
+			$username = $securityIdentifier
+		} else {
+			$username = Format-AccountName $fileSystemRight.Username
+		}
+
 		$InheritanceFlags = @()
 		$containerInherit = $fileSystemRight.containerInherit -eq $true
 		$objectInherit = $fileSystemRight.objectInherit -eq $true
