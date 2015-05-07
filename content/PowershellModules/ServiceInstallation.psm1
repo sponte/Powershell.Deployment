@@ -553,6 +553,10 @@ function Uninstall-TopshelfService {
 	{
 		Stop-WindowsService -serviceConfig $serviceConfig
 
+		# Don't want to force a reboot every uninstall
+		$removeService = "sc.exe delete $($serviceConfig.name)"
+		Invoke-Expression -Command $removeService -ErrorAction Stop
+
 		# uninstall service	
 
 		$arguments = @()
