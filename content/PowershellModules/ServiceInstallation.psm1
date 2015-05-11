@@ -490,6 +490,17 @@ function Uninstall-WindowsService {
 		$removeService = "sc.exe delete $($serviceConfig.name)"
 		Invoke-Expression -Command $removeService -ErrorAction Stop
 
+		$MaximumAttempts = 10
+		$Attempt = 0
+		while ((get-service | ?{$_.Name -eq $serviceConfig.name}).length -gt 0) {
+			$Attempt = $Attempt + 1
+			if ($Attempt -gt $MaximumAttempts){
+				throw "Timeout while waiting for service '$($serviceConfig.name)' to be deleted"
+			}
+			Write-Host "Waiting for service '$($serviceConfig.name)' to be deleted"
+			Sleep 1
+		}
+
 		# uninstall any custom .net installers that may be in the host assembly		
 		$hostAssemblyName = $serviceConfig.name +  ".dll"
 		$hostAssemblyFilePath = (Join-Path $rootPath $hostAssemblyName).ToString()
@@ -556,6 +567,17 @@ function Uninstall-TopshelfService {
 		# Don't want to force a reboot every uninstall
 		$removeService = "sc.exe delete $($serviceConfig.name)"
 		Invoke-Expression -Command $removeService -ErrorAction Stop
+
+		$MaximumAttempts = 10
+		$Attempt = 0
+		while ((get-service | ?{$_.Name -eq $serviceConfig.name}).length -gt 0) {
+			$Attempt = $Attempt + 1
+			if ($Attempt -gt $MaximumAttempts){
+				throw "Timeout while waiting for service '$($serviceConfig.name)' to be deleted"
+			}
+			Write-Host "Waiting for service '$($serviceConfig.name)' to be deleted"
+			Sleep 1
+		}
 
 		# uninstall service	
 
