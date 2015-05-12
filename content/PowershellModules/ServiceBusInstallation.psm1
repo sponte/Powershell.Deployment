@@ -103,12 +103,45 @@ function Install-ServiceBusQueue {
     $ErrorActionPreference = "stop"
 
     $queue = $serviceBusQueueConfig.Name
+    
+    $autoDeleteOnIdle = [System.Xml.XmlConvert]::ToTimeSpan($serviceBusQueueConfig.AutoDeleteOnIdle)
+    $defaultMessageTimeToLive = [System.Xml.XmlConvert]::ToTimeSpan($serviceBusQueueConfig.DefaultMessageTimeToLive)
+    $duplicateDetectionHistoryTimeWindow = [System.Xml.XmlConvert]::ToTimeSpan($serviceBusQueueConfig.DuplicateDetectionHistoryTimeWindow)
+    $enableDeadLetteringOnMessageExpiration = $serviceBusQueueConfig.EnableDeadLetteringOnMessageExpiration -eq $true
+    $enableBatchedOperations = $serviceBusQueueConfig.EnableBatchedOperations -eq $true
+    $enableExpress = $serviceBusQueueConfig.EnableExpress -eq $true
+    $enablePartitioning = $serviceBusQueueConfig.EnablePartitioning -eq $true
+    $forwardDeadLetteredMessagesTo = $serviceBusQueueConfig.ForwardDeadLetteredMessagesTo 
+    $forwardTo  = $serviceBusQueueConfig.ForwardTo 
+    $isAnonymousAccessible = $serviceBusQueueConfig.IsAnonymousAccessible -eq $true
+    $lockDuration = [System.Xml.XmlConvert]::ToTimeSpan($serviceBusQueueConfig.LockDuration)
+    $maxDeliveryCount  = $serviceBusQueueConfig.MaxDeliveryCount 
+    $maxSizeInMegabytes  = $serviceBusQueueConfig.MaxSizeInMegabytes 
+    $requiresDuplicateDetection  = $serviceBusQueueConfig.RequiresDuplicateDetection -eq $true
+    $requiresSession = $serviceBusQueueConfig.RequiresSession -eq $true
+    $supportOrdering  = $serviceBusQueueConfig.SupportOrdering -eq $true
 
     if (!(Test-SbQueue -connectionString $connectionString -name $queue)) {
         Write-Log "Creating queue $queue"
         
         try{   
-            New-SbQueue -connectionString $connectionString -name $queue
+            New-SbQueue -connectionString $connectionString -name $queue `
+                -autoDeleteOnIdle $autoDeleteOnIdle `
+                -defaultMessageTimeToLive $defaultMessageTimeToLive `
+                -duplicateDetectionHistoryTimeWindow $duplicateDetectionHistoryTimeWindow `
+                -enableDeadLetteringOnMessageExpiration $enableDeadLetteringOnMessageExpiration `
+                -enableBatchedOperations $enableBatchedOperations `
+                -enableExpress $enableExpress `
+                -enablePartitioning $enablePartitioning `
+                -forwardDeadLetteredMessagesTo $forwardDeadLetteredMessagesTo `
+                -forwardTo $forwardTo `
+                -isAnonymousAccessible $isAnonymousAccessible `
+                -lockDuration $lockDuration `
+                -maxDeliveryCount $maxDeliveryCount `
+                -maxSizeInMegabytes $maxSizeInMegabytes `
+                -requiresDuplicateDetection $requiresDuplicateDetection `
+                -requiresSession $requiresSession `
+                -supportOrdering $supportOrdering
         } Catch [Microsoft.ServiceBus.Messaging.MessagingEntityAlreadyExistsException] {
             Write-Warning "Queue $queue already exists, unable to create it"
         }
@@ -134,11 +167,34 @@ function Install-ServiceBusTopic {
 
     $topic = $serviceBusTopicConfig.Name
 
+    $autoDeleteOnIdle = [System.Xml.XmlConvert]::ToTimeSpan($serviceBusTopicConfig.AutoDeleteOnIdle)
+    $defaultMessageTimeToLive = [System.Xml.XmlConvert]::ToTimeSpan($serviceBusTopicConfig.DefaultMessageTimeToLive)
+    $duplicateDetectionHistoryTimeWindow = [System.Xml.XmlConvert]::ToTimeSpan($serviceBusTopicConfig.DuplicateDetectionHistoryTimeWindow)
+    $enableBatchedOperations = $serviceBusTopicConfig.EnableBatchedOperations -eq $true
+    $enableExpress = $serviceBusTopicConfig.EnableExpress -eq $true
+    $enableFilteringMessagesBeforePublishing = $serviceBusTopicConfig.EnableFilteringMessagesBeforePublishing -eq $true
+    $enablePartitioning = $serviceBusTopicConfig.EnablePartitioning -eq $true
+    $isAnonymousAccessible = $serviceBusTopicConfig.IsAnonymousAccessible -eq $true
+    $maxSizeInMegabytes  = $serviceBusTopicConfig.MaxSizeInMegabytes 
+    $requiresDuplicateDetection  = $serviceBusTopicConfig.RequiresDuplicateDetection -eq $true
+    $supportOrdering  = $serviceBusTopicConfig.SupportOrdering -eq $true    
+
     if (!(Test-SbTopic -connectionString $connectionString -name $topic)) {
         Write-Log "Creating topic $topic"
         
         try{   
-            New-SbTopic -connectionString $connectionString -name $topic
+            New-SbTopic -connectionString $connectionString -name $topic `
+                -autoDeleteOnIdle $autoDeleteOnIdle `
+                -defaultMessageTimeToLive $defaultMessageTimeToLive `
+                -duplicateDetectionHistoryTimeWindow $duplicateDetectionHistoryTimeWindow `
+                -enableBatchedOperations $enableBatchedOperations `
+                -enableExpress $enableExpress `
+                -enableFilteringMessagesBeforePublishing $enableFilteringMessagesBeforePublishing `
+                -enablePartitioning $enablePartitioning `
+                -isAnonymousAccessible $isAnonymousAccessible `
+                -maxSizeInMegabytes $maxSizeInMegabytes `
+                -requiresDuplicateDetection $requiresDuplicateDetection `
+                -supportOrdering $supportOrdering `
         } Catch [Microsoft.ServiceBus.Messaging.MessagingEntityAlreadyExistsException] {
             Write-Warning "Topic $topic already exists, unable to create it"
         }
@@ -204,13 +260,32 @@ function Install-ServiceBusSubscription {
     $ErrorActionPreference = "stop"
 
     $subscription = $serviceBusSubscriptionConfig.Name
-	$requiresSession = $serviceBusSubscriptionConfig.RequiresSession -eq $true
+
+    $autoDeleteOnIdle = [System.Xml.XmlConvert]::ToTimeSpan($serviceBusSubscriptionConfig.AutoDeleteOnIdle)
+    $defaultMessageTimeToLive = [System.Xml.XmlConvert]::ToTimeSpan($serviceBusSubscriptionConfig.DefaultMessageTimeToLive)
+    $enableBatchedOperations = $serviceBusSubscriptionConfig.EnableBatchedOperations -eq $true
+    $enableDeadLetteringOnFilterEvaluationExceptions = $serviceBusSubscriptionConfig.EnableDeadLetteringOnFilterEvaluationExceptions -eq $true
+    $enableDeadLetteringOnMessageExpiration = $serviceBusSubscriptionConfig.EnableDeadLetteringOnMessageExpiration -eq $true
+    $forwardDeadLetteredMessagesTo = $serviceBusSubscriptionConfig.ForwardDeadLetteredMessagesTo
+    $forwardTo = $serviceBusSubscriptionConfig.ForwardTo
+    $lockDuration = [System.Xml.XmlConvert]::ToTimeSpan($serviceBusSubscriptionConfig.LockDuration)
+    $maxDeliveryCount  = $serviceBusSubscriptionConfig.MaxDeliveryCount 
+    $requiresSession = $serviceBusSubscriptionConfig.RequiresSession -eq $true
 
     if (!(Test-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription)) {
         Write-Log "Creating subscription $subscription"
 
         try{   
-            New-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription -requiresSession $requiresSession
+            New-SbTopicSubscription -connectionString $connectionString -topic $topic -name $subscription `
+                -autoDeleteOnIdle $autoDeleteOnIdle `
+                -defaultMessageTimeToLive $defaultMessageTimeToLive `
+                -enableBatchedOperations $enableBatchedOperations `
+                -enableDeadLetteringOnFilterEvaluationExceptions $enableDeadLetteringOnFilterEvaluationExceptions `
+                -forwardDeadLetteredMessagesTo $forwardDeadLetteredMessagesTo `
+                -forwardTo $forwardTo `
+                -lockDuration $lockDuration `
+                -maxDeliveryCount $maxDeliveryCount `
+                -requiresSession $requiresSession 
         } Catch [Microsoft.ServiceBus.Messaging.MessagingEntityAlreadyExistsException] {
             Write-Warning "Topic subscription $subscription already exists, unable to create it"
         }
@@ -244,9 +319,9 @@ function Install-ServiceBusSubscriptionRule {
     $filter = $serviceBusSubscriptionRuleConfig.filter
     $action = $serviceBusSubscriptionRuleConfig.action
 
-	if (Test-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name '$Default') {
-		Remove-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name '$Default'
-	}
+    if (Test-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name '$Default') {
+        Remove-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name '$Default'
+    }
 
     if (Test-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule) {
         $topicSubscriptionRule = Get-SbTopicSubscriptionRule -connectionString $connectionString -topic $topic -subscription $subscription -name $rule
@@ -421,11 +496,52 @@ function New-SbQueue {
     [CmdletBinding()]
     param(
         [string] $connectionString,
-        [string] $name
+        [string] $name,
+        [System.TimeSpan] $autoDeleteOnIdle = [System.TimeSpan]"106751:02:48:05.477",
+        [System.TimeSpan] $defaultMessageTimeToLive = [System.TimeSpan]"106751:02:48:05.477",
+        [System.TimeSpan] $duplicateDetectionHistoryTimeWindow = [System.TimeSpan]"00:10:00",
+        [bool] $enableDeadLetteringOnMessageExpiration = $false,
+        [bool] $enableBatchedOperations = $false,
+        [bool] $enableExpress = $false,
+        [bool] $enablePartitioning = $false,
+        [string] $forwardDeadLetteredMessagesTo = "",
+        [string] $forwardTo  = "",
+        [bool] $isAnonymousAccessible = $false,
+        [System.TimeSpan] $lockDuration = [System.TimeSpan]"00:01:00",
+        [int] $maxDeliveryCount  = 10,
+        [long] $maxSizeInMegabytes  = 1000,
+        [bool] $requiresDuplicateDetection = $false,
+        [bool] $requiresSession = $false,
+        [bool] $supportOrdering  = $false
     )
 
     $namespaceManager = [Microsoft.ServiceBus.NamespaceManager]::CreateFromConnectionString($connectionString)
     $queueDescription = New-Object Microsoft.ServiceBus.Messaging.QueueDescription $name
+
+    $queueDescription.AutoDeleteOnIdle = $autoDeleteOnIdle
+    $queueDescription.DefaultMessageTimeToLive = $defaultMessageTimeToLive
+    $queueDescription.DuplicateDetectionHistoryTimeWindow = $duplicateDetectionHistoryTimeWindow
+    $queueDescription.EnableDeadLetteringOnMessageExpiration = $enableDeadLetteringOnMessageExpiration
+    $queueDescription.EnableBatchedOperations = $enableBatchedOperations
+    if(Get-Member -inputobject $queueDescription -MemberType Properties | ?{$_.Name -eq "EnableExpress"}){
+        $queueDescription.EnableExpress = $enableExpress
+    }
+    if(Get-Member -inputobject $queueDescription -MemberType Properties | ?{$_.Name -eq "EnablePartitioning"}){
+        $queueDescription.EnablePartitioning = $enablePartitioning
+    }
+    if(Get-Member -inputobject $queueDescription -MemberType Properties | ?{$_.Name -eq "ForwardDeadLetteredMessagesTo"}){
+        $queueDescription.ForwardDeadLetteredMessagesTo = $forwardDeadLetteredMessagesTo
+    }
+    $queueDescription.ForwardTo  = $forwardTo
+    $queueDescription.IsAnonymousAccessible = $isAnonymousAccessible
+    $queueDescription.LockDuration = $lockDuration
+    $queueDescription.MaxDeliveryCount  = $maxDeliveryCount 
+    $queueDescription.MaxSizeInMegabytes  = $maxSizeInMegabytes
+    $queueDescription.RequiresDuplicateDetection  = $requiresDuplicateDetection
+    $queueDescription.RequiresSession = $requiresSession
+    $queueDescription.SupportOrdering  = $supportOrdering
+    $queueDescription.LockDuration = $lockDuration
+
     $namespaceManager.CreateQueue($queueDescription)
 }
 
@@ -433,11 +549,35 @@ function New-SbTopic {
     [CmdletBinding()]
     param(
         [string] $connectionString,
-        [string] $name
+        [string] $name,
+        [System.TimeSpan] $autoDeleteOnIdle = [System.TimeSpan]"106751:02:48:05.477",
+        [System.TimeSpan] $defaultMessageTimeToLive = [System.TimeSpan]"106751:02:48:05.477",
+        [System.TimeSpan] $duplicateDetectionHistoryTimeWindow = [System.TimeSpan]"00:10:00",
+        [bool] $enableBatchedOperations = $false,
+        [bool] $enableExpress = $false,
+        [bool] $enableFilteringMessagesBeforePublishing = $false,
+        [bool] $enablePartitioning = $false,
+        [bool] $isAnonymousAccessible = $false,
+        [long] $maxSizeInMegabytes  = 1000,
+        [bool] $requiresDuplicateDetection = $false,
+        [bool] $supportOrdering  = $false
     )
 
     $namespaceManager = [Microsoft.ServiceBus.NamespaceManager]::CreateFromConnectionString($connectionString)
     $topicDescription = New-Object Microsoft.ServiceBus.Messaging.TopicDescription $name
+
+    $topicDescription.AutoDeleteOnIdle = $autoDeleteOnIdle
+    $topicDescription.DefaultMessageTimeToLive = $defaultMessageTimeToLive
+    $topicDescription.DuplicateDetectionHistoryTimeWindow = $duplicateDetectionHistoryTimeWindow
+    $topicDescription.EnableBatchedOperations = $enableBatchedOperations
+    $topicDescription.EnableExpress = $enableExpress
+    $topicDescription.EnableFilteringMessagesBeforePublishing = $enableFilteringMessagesBeforePublishing 
+    $topicDescription.EnablePartitioning = $enablePartitioning
+    $topicDescription.IsAnonymousAccessible = $isAnonymousAccessible
+    $topicDescription.MaxSizeInMegabytes  = $maxSizeInMegabytes
+    $topicDescription.RequiresDuplicateDetection  = $requiresDuplicateDetection
+    $topicDescription.SupportOrdering  = $supportOrdering
+
     $namespaceManager.CreateTopic($topicDescription)
 }
 
@@ -482,14 +622,35 @@ function New-SbTopicSubscription {
     param(
         [string] $connectionString,
         [string] $topic,
-	    [string] $name,
-        [bool] $requiresSession
+        [string] $name,
+        [System.TimeSpan] $autoDeleteOnIdle = [System.TimeSpan]"106751:02:48:05.477",
+        [System.TimeSpan] $defaultMessageTimeToLive = [System.TimeSpan]"106751:02:48:05.477",
+        [bool] $enableBatchedOperations = $false,
+        [bool] $enableDeadLetteringOnFilterEvaluationExceptions  = $false,
+        [bool] $enableDeadLetteringOnMessageExpiration  = $false,
+        [string] $forwardDeadLetteredMessagesTo = "",
+        [string] $forwardTo  = "",
+        [System.TimeSpan] $lockDuration = [System.TimeSpan]"00:01:00",
+        [int] $maxDeliveryCount  = 10,
+        [bool] $requiresSession = $false        
     )
 
     $namespaceManager = [Microsoft.ServiceBus.NamespaceManager]::CreateFromConnectionString($connectionString)
     $subscriptionDescription =  New-Object Microsoft.ServiceBus.Messaging.SubscriptionDescription $topic,$name
-	$subscriptionDescription.RequiresSession = $requiresSession
-    
+
+    $subscriptionDescription.AutoDeleteOnIdle = $autoDeleteOnIdle
+    $subscriptionDescription.DefaultMessageTimeToLive = $defaultMessageTimeToLive
+    $subscriptionDescription.EnableBatchedOperations = $enableBatchedOperations
+    $subscriptionDescription.EnableDeadLetteringOnFilterEvaluationExceptions = $enableDeadLetteringOnFilterEvaluationExceptions
+    $subscriptionDescription.EnableDeadLetteringOnMessageExpiration = $enableDeadLetteringOnMessageExpiration
+    if(Get-Member -inputobject $subscriptionDescription -MemberType Properties | ?{$_.Name -eq "ForwardDeadLetteredMessagesTo"}){
+        $subscriptionDescription.ForwardDeadLetteredMessagesTo = $forwardDeadLetteredMessagesTo
+    }
+    $subscriptionDescription.ForwardTo = $forwardTo
+    $subscriptionDescription.LockDuration = $lockDuration
+    $subscriptionDescription.MaxDeliveryCount = $maxDeliveryCount
+    $subscriptionDescription.RequiresSession = $requiresSession
+
     $namespaceManager.CreateSubscription($subscriptionDescription)
 }
 
