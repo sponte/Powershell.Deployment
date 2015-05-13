@@ -257,7 +257,113 @@
       </xs:element>
     </xs:sequence>
     <xs:attribute name="name" use="required" />
+    <xs:attribute name="autoDeleteOnIdle" type="xs:duration" default="P106751DT2H48M5.477S">
+    <xs:annotation>
+        <xs:documentation>The idle interval after which the queue is automatically deleted. The minimum duration is 5 minutes.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="defaultMessageTimeToLive" type="xs:duration" default="P106751DT2H48M5.477S">
+    <xs:annotation>
+        <xs:documentation>
+          The default message time to live value. This is the duration after which the message expires, starting from when the message is sent to Service Bus. 
+          This is the default value used when TimeToLive is not set on a message itself. Messages older than their TimeToLive value will expire and no longer be retained in the message store. 
+          Subscribers will be unable to receive expired messages.
+
+          A message can have a lower TimeToLive value than that specified here, but by default TimeToLive is set to MaxValue. Therefore, this property becomes the default time to live 
+          value applied to messages.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="duplicateDetectionHistoryTimeWindow" type="xs:duration" default="PT10M">
+    <xs:annotation>
+        <xs:documentation>The TimeSpan structure that defines the duration of the duplicate detection history. The default value is 10 minutes.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="enableDeadLetteringOnMessageExpiration" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>Indicates whether this queue has dead letter support when a message expires.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="enableBatchedOperations" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>Indicates whether server-side batched operations are enabled.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="enableExpress" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>Whether to enable the queue to be partitioned across multiple message brokers. An express queue holds a message in memory temporarily before writing it to persistent storage.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="enablePartitioning" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>Indicates whether the queue to be partitioned across multiple message brokers is enabled.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="forwardDeadLetteredMessagesTo" type="xs:string" default="">
+    <xs:annotation>
+        <xs:documentation>The path to the recipient to which the dead lettered message is forwarded.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="forwardTo" type="xs:string" default="">
+    <xs:annotation>
+        <xs:documentation>The path to the recipient to which the message is forwarded.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="isAnonymousAccessible" type="xs:boolean" default="false" >
+    <xs:annotation>
+        <xs:documentation>Indicates whether the message is anonymous accessible.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="lockDuration" type="xs:duration" default="PT1M" >
+    <xs:annotation>
+        <xs:documentation>
+          The duration of a peek lock; that is, the amount of time that the message is locked for other receivers. 
+          The maximum value for LockDuration is 5 minutes; the default value is 1 minute.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="maxDeliveryCount" type="xs:int" default="10">
+    <xs:annotation>
+        <xs:documentation>The maximum delivery count. A message is automatically deadlettered after this number of deliveries.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="maxSizeInMegabytes" type="queueMaxSizeInMegaBytes" default="1024">
+    <xs:annotation>
+        <xs:documentation>The maximum size of the queue in megabytes, which is the size of memory allocated for the queue.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="requiresDuplicateDetection" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>The value indicating if this queue requires duplicate detection.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="requiresSession" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>Value that indicates whether the queue supports the concept of session.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="supportOrdering" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>Value that indicates whether the queue supports ordering.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
   </xs:complexType>
+
+  <xs:simpleType name="queueMaxSizeInMegaBytes">
+    <xs:restriction base="xs:long">
+      <xs:enumeration value="1024"/>
+      <xs:enumeration value="2048"/>
+      <xs:enumeration value="3072"/>
+      <xs:enumeration value="4096"/>
+      <xs:enumeration value="5120"/>
+      <xs:enumeration value="6144"/>
+      <xs:enumeration value="7168"/>
+      <xs:enumeration value="8192"/>
+      <xs:enumeration value="9216"/>
+      <xs:enumeration value="10240"/>
+      <xs:enumeration value="8796093022207"/>
+    </xs:restriction>
+  </xs:simpleType>
 
   <xs:complexType name="topic">
     <xs:sequence>
@@ -275,7 +381,83 @@
       </xs:element>
     </xs:sequence>
     <xs:attribute name="name" use="required" />
+    <xs:attribute name="autoDeleteOnIdle" type="xs:duration" default="P106751DT2H48M5.477S">
+    <xs:annotation>
+        <xs:documentation>The TimeSpan idle interval after which the topic is automatically deleted. The minimum duration is 5 minutes.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="defaultMessageTimeToLive" type="xs:duration" default="P106751DT2H48M5.477S">
+    <xs:annotation>
+        <xs:documentation>
+          The default message time to live value for a topic. This is the duration after which the message expires, starting from when the message is sent to the Service Bus. 
+          This is the default value used when TimeToLive is not set on a message itself.
+
+          Messages older than their TimeToLive value will expire and no longer be retained in the message store. Subscribers will be unable to receive expired messages.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="duplicateDetectionHistoryTimeWindow" type="xs:duration" default="PT10M">
+    <xs:annotation>
+        <xs:documentation>The TimeSpan structure that defines the duration of the duplicate detection history.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="enableBatchedOperations" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>A value that indicates whether server-side batched operations are enabled.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="enableExpress" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>A value that indicates whether Express Entities are enabled. An express topic holds a message in memory temporarily before writing it to persistent storage.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="enableFilteringMessagesBeforePublishing" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>Whether messages should be filtered before publishing.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="enablePartitioning" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>Whether to enable the topic to be partitioned across multiple message brokers. An express topic holds a message in memory temporarily before writing it to persistent storage.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="isAnonymousAccessible" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>Whether anonymous access is allowed.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="maxSizeInMegabytes" type="topicMaxSizeInMegaBytes" default="1024">
+    <xs:annotation>
+        <xs:documentation>The maximum size of the topic in megabytes, which is the size of memory allocated for the topic.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="requiresDuplicateDetection" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>The value that indicates whether a topic requires duplication detection.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="supportOrdering" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>Should topic support ordering method.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
   </xs:complexType>
+
+  <xs:simpleType name="topicMaxSizeInMegaBytes">
+    <xs:restriction base="xs:long">
+      <xs:enumeration value="1024"/>
+      <xs:enumeration value="2048"/>
+      <xs:enumeration value="3072"/>
+      <xs:enumeration value="4096"/>
+      <xs:enumeration value="5120"/>
+      <xs:enumeration value="6144"/>
+      <xs:enumeration value="7168"/>
+      <xs:enumeration value="8192"/>
+      <xs:enumeration value="9216"/>
+      <xs:enumeration value="10240"/>
+      <xs:enumeration value="8796093022207"/>
+    </xs:restriction>
+  </xs:simpleType>
 
   <xs:complexType name="authorizations">
     <xs:sequence>
@@ -307,7 +489,62 @@
       </xs:element>
     </xs:sequence>
     <xs:attribute name="name" use="required" />
-    <xs:attribute name="requiresSession" type="xs:boolean" default="false" />
+    <xs:attribute name="autoDeleteOnIdle" type="xs:duration" default="P106751DT2H48M5.477S">
+    <xs:annotation>
+        <xs:documentation>The TimeSpan idle interval after which the subscription is automatically deleted. The minimum duration is 5 minutes.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="defaultMessageTimeToLive" type="xs:duration" default="P106751DT2H48M5.477S">
+    <xs:annotation>
+        <xs:documentation>The default message time to live value. This is the duration after which the message expires, starting from when the message is sent to the Service Bus. 
+          This is the default value used when TimeToLive is not set on a message itself.
+
+          Messages older than their TimeToLive value will expire and no longer be retained in the message store. Subscribers will be unable to receive expired messages.
+          A message can have a lower TimeToLive value than that specified here, but by default TimeToLive is set to MaxValue. Therefore, this property becomes the default time to live value 
+          applied to messages.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="enableBatchedOperations" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>Value that indicates whether the batched operations are enabled.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="enableDeadLetteringOnFilterEvaluationExceptions" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>The value that indicates if a subscription has dead letter support on Filter evaluation exceptions.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="enableDeadLetteringOnMessageExpiration" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>The value that indicates if a subscription has dead letter support when a message expires.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="forwardDeadLetteredMessagesTo" type="xs:string" default="">
+    <xs:annotation>
+        <xs:documentation>The path to the recipient to which the dead lettered messages are forwarded.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="forwardTo" type="xs:string" default="">
+    <xs:annotation>
+        <xs:documentation>The path to the recipient to which the message is forwarded.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="lockDuration" type="xs:duration" default="PT1M">
+    <xs:annotation>
+        <xs:documentation>The lock duration time span for the subscription.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="maxDeliveryCount" type="xs:int" default="10">
+    <xs:annotation>
+        <xs:documentation>The number of maximum deliveries.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
+    <xs:attribute name="requiresSession" type="xs:boolean" default="false">
+    <xs:annotation>
+        <xs:documentation>The value indicating if a subscription supports the concept of session.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>  
   </xs:complexType>
 
   <xs:complexType name="rules">
