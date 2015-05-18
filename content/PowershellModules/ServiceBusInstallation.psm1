@@ -570,9 +570,17 @@ function New-SbTopic {
     $topicDescription.DefaultMessageTimeToLive = $defaultMessageTimeToLive
     $topicDescription.DuplicateDetectionHistoryTimeWindow = $duplicateDetectionHistoryTimeWindow
     $topicDescription.EnableBatchedOperations = $enableBatchedOperations
-    $topicDescription.EnableExpress = $enableExpress
+
+    if(Get-Member -inputobject $topicDescription -MemberType Properties | ?{$_.Name -eq "EnableExpress"}){
+        $topicDescription.EnableExpress = $enableExpress
+    }
+
     $topicDescription.EnableFilteringMessagesBeforePublishing = $enableFilteringMessagesBeforePublishing 
-    $topicDescription.EnablePartitioning = $enablePartitioning
+
+    if(Get-Member -inputobject $topicDescription -MemberType Properties | ?{$_.Name -eq "EnablePartitioning"}){
+        $topicDescription.EnablePartitioning = $enablePartitioning
+    }
+
     $topicDescription.IsAnonymousAccessible = $isAnonymousAccessible
     $topicDescription.MaxSizeInMegabytes  = $maxSizeInMegabytes
     $topicDescription.RequiresDuplicateDetection  = $requiresDuplicateDetection
