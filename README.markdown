@@ -65,15 +65,15 @@ This is a Json object that describes environment configuration. The one that is 
 # Workflow
 
 Install Nuget package
-1. The hook in base scripts are created. The installation process will try to detect the project type and create an appropriate default.
-2. Xsd validator for xml infrastructure configuration file is created.
-3. A xml infrastructure configuration file is created. The installation process will try to detect the project type and create an appropriate default.
-4. A demo json parameter configuration file is created. This is the variables to use for templates. These variables can be overridden with environment variables of the same name or global powershell variables of the same name. 
-5. Powershell helper modules are added.
+* The hook in base scripts are created. The installation process will try to detect the project type and create an appropriate default.
+* Xsd validator for xml infrastructure configuration file is created.
+* A xml infrastructure configuration file is created. The installation process will try to detect the project type and create an appropriate default.
+* A demo json parameter configuration file is created. This is the variables to use for templates. These variables can be overridden with environment variables of the same name or global powershell variables of the same name. 
+* Powershell helper modules are added.
 
 Upgrade Nuget package.
-1. Powershell helper modules are updated.
-2. Xsd validator for xml infrastructure configuration is updated.
+* Powershell helper modules are updated.
+* Xsd validator for xml infrastructure configuration is updated.
 
 This means that any custom configuration created is not overwritten, but you are still able to update the Powershell helper modules.
 
