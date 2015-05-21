@@ -67,9 +67,9 @@ This is a Json object that describes environment configuration. The one that is 
 Install Nuget package
 1. The hook in base scripts are created. The installation process will try to detect the project type and create an appropriate default.
 2. Xsd validator for xml infrastructure configuration file is created.
-2. A xml infrastructure configuration file is created. The installation process will try to detect the project type and create an appropriate default.
-3. A demo json parameter configuration file is created. This is the variables to use for templates. These variables can be overridden with environment variables of the same name or global powershell variables of the same name. 
-4. Powershell helper modules are added.
+3. A xml infrastructure configuration file is created. The installation process will try to detect the project type and create an appropriate default.
+4. A demo json parameter configuration file is created. This is the variables to use for templates. These variables can be overridden with environment variables of the same name or global powershell variables of the same name. 
+5. Powershell helper modules are added.
 
 Upgrade Nuget package.
 1. Powershell helper modules are updated.
