@@ -982,6 +982,7 @@
       <xs:extension base="service">
         <xs:attribute name="path" type="xs:string" />
         <xs:attribute name="srvany" type="xs:boolean" default="false" />
+        <xs:attribute name="arguments" type="xs:string" default="" />
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
