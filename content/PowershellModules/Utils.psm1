@@ -517,21 +517,33 @@ function Merge-Tokens {
         $tokens
     )
 
-    return [regex]::Replace(
+    $tokensMerged = [regex]::Replace(
         $template,
+        '\{\{\s*(?<tokenName>[\$].+?)\s*\}\}',
+        {
+            param($match)
+            $tokenExpression = $match.Groups['tokenName'].Value
+            $replacement = iex $tokenExpression
+            return $replacement
+    })
+
+    $tokensMerged = [regex]::Replace(
+        $tokensMerged,
         '\{\{\s*(?<tokenName>[^\$]+?)\s*\}\}',
         {
             param($match)
-             
+
             $tokenName = $match.Groups['tokenName'].Value
-            
             $replacement = iex "`$tokens.$tokenName"
+
             if($replacement -eq $null) {
                 throw "Could not find replacement token for $tokenName"
             }
             
             return $replacement
     })  
+
+    return $tokensMerged
 }
 
 function Get-SecurityIdentifier {
