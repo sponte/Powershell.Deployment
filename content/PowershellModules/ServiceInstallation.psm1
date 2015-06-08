@@ -210,7 +210,11 @@ function Install-WindowsService {
 		}
 		$servicePath = $destinationPath
 	} else {
-		$servicePath = $binPath
+		$servicePath = "`"$binPath`""
+
+		if ($serviceConfig.arguments) {
+			$servicePath = "$servicePath $($serviceConfig.arguments)"
+		}
 	}
 
 	if([string]::IsNullOrEmpty($serviceConfig.account) -eq $true) {
@@ -224,7 +228,14 @@ function Install-WindowsService {
 
 	if ($useSrvAny) {	
 		New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)" -Name "Parameters" –Force
-		New-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "Application" -Value "$binPath" 
+		New-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "Application" -Value "$binPath" -Force
+		if ($serviceConfig.arguments) {
+			New-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "AppParameters" -Value "$($serviceConfig.arguments)" -Force
+		} else {
+			if ((Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters").AppParameters -ne $null){
+				Remove-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "AppParameters"
+			}
+		}
 	}
 
 	$configureServiceStartup = "sc.exe config $($serviceConfig.name) start= $serviceStartUpType"
