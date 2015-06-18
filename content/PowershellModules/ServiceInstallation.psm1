@@ -204,17 +204,27 @@ function Install-WindowsService {
 
 	if ($serviceContainer -eq 'srvany') {
 		$servicePath = Join-Path $rootPath "deployment\PowershellModules\Tools\srvany.exe"
-		$destinationPath = "$(split-path $binPath)\srvany.exe"
-		if (-not (Test-Path $destinationPath)) {
-			copy-item $servicePath $destinationPath
+		
+		if (split-path $binPath) {
+			$destinationPath = "$(split-path $binPath)\srvany.exe"
+			if (-not (Test-Path $destinationPath)) {
+				copy-item $servicePath $destinationPath
+			}
+		} else {
+			$destinationPath =	"$rootPath\srvany.exe"
 		}
 		$servicePath = $destinationPath
 	} elseif ($serviceContainer -eq 'nssm') {
 		$servicePath = Join-Path $rootPath "deployment\PowershellModules\Tools\nssm.exe"
-		$destinationPath = "$(split-path $binPath)\nssm.exe"
-		if (-not (Test-Path $destinationPath)) {
-			copy-item $servicePath $destinationPath
-		}
+
+		if (split-path $binPath) {
+			$destinationPath = "$(split-path $binPath)\nssm.exe"
+			if (-not (Test-Path $destinationPath)) {
+				copy-item $servicePath $destinationPath
+			}
+		} else {
+			$destinationPath =	"$rootPath\nssm.exe"
+		} 
 		$servicePath = $destinationPath		
 	} else {
 		$servicePath = "`"$binPath`""
