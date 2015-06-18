@@ -200,15 +200,22 @@ function Install-WindowsService {
 		$binPath = (Join-Path $rootPath $binPath.SubString(1, $binPath.Length - 1)).ToString()
 	}
 
-	$useSrvAny = $serviceConfig.srvany -eq $true
+	$serviceContainer = $serviceConfig.serviceContainer
 
-	if ($useSrvAny) {
+	if ($serviceContainer -eq 'srvany') {
 		$servicePath = Join-Path $rootPath "deployment\PowershellModules\Tools\srvany.exe"
 		$destinationPath = "$(split-path $binPath)\srvany.exe"
 		if (-not (Test-Path $destinationPath)) {
 			copy-item $servicePath $destinationPath
 		}
 		$servicePath = $destinationPath
+	} elseif ($serviceContainer -eq 'nssm') {
+		$servicePath = Join-Path $rootPath "deployment\PowershellModules\Tools\nssm.exe"
+		$destinationPath = "$(split-path $binPath)\nssm.exe"
+		if (-not (Test-Path $destinationPath)) {
+			copy-item $servicePath $destinationPath
+		}
+		$servicePath = $destinationPath		
 	} else {
 		$servicePath = "`"$binPath`""
 
@@ -226,7 +233,7 @@ function Install-WindowsService {
 		New-Service -binaryPathName $servicePath -name $serviceConfig.name -credential $PSCredentials -displayName $serviceConfig.displayName -startupType Automatic		
 	}
 
-	if ($useSrvAny) {	
+	if ($serviceContainer -eq 'srvany' -or $serviceContainer -eq 'nssm') {	
 		New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)" -Name "Parameters" –Force
 		New-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "Application" -Value "$binPath" -Force
 		if ($serviceConfig.arguments) {
@@ -237,6 +244,27 @@ function Install-WindowsService {
 			}
 		}
 	}
+
+	if ($serviceConfig.description) {
+		$configureServiceDescription = "sc.exe description  $($serviceConfig.name) ""$($serviceConfig.description)"" "
+		Invoke-Expression -Command $configureServiceDescription -ErrorAction Stop
+	}
+
+	$dependsOnServices = '/'
+
+	if ($serviceConfig.dependsOnServices.dependsOnService -ne $null) {
+	    foreach($dependsOnService in @($serviceConfig.dependsOnServices.dependsOnService)) {
+	        if(!$dependsOnService) { continue }
+	        if ($dependsOnServices -eq '/') {
+				$dependsOnServices = $dependsOnService.serviceName
+			} else {
+				$dependsOnServices += "/$($dependsOnService.serviceName)"
+			}
+	    }   
+    } 
+
+	$configureServiceStartup = "sc.exe config $($serviceConfig.name) depend= $dependsOnServices"
+	Invoke-Expression -Command $configureServiceStartup -ErrorAction Stop
 
 	$configureServiceStartup = "sc.exe config $($serviceConfig.name) start= $serviceStartUpType"
 	Invoke-Expression -Command $configureServiceStartup -ErrorAction Stop
@@ -662,13 +690,9 @@ function Get-MetadataForWindowsService {
 		$binPath = (Join-Path $rootPath $binPath.SubString(1, $binPath.Length - 1)).ToString()
 	}
 
-	$useSrvAny = $serviceConfig.srvany -eq $true
+	$serviceContainer = $serviceConfig.serviceContainer
 
-	if ($useSrvAny) {
-		$servicePath = $binPath
-	} else {
-		$servicePath = $binPath
-	}
+	$servicePath = $binPath
 
 	$metaData = @()
     $metaData += Get-MetaDataFromAssembly -assemblyFilePath $servicePath 
