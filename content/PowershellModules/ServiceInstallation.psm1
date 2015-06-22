@@ -207,11 +207,11 @@ function Install-WindowsService {
 		
 		if (split-path $binPath) {
 			$destinationPath = "$(split-path $binPath)\srvany.exe"
-			if (-not (Test-Path $destinationPath)) {
-				copy-item $servicePath $destinationPath
-			}
 		} else {
 			$destinationPath =	"$rootPath\srvany.exe"
+		}
+		if (-not (Test-Path $destinationPath)) {
+			copy-item $servicePath $destinationPath
 		}
 		$servicePath = $destinationPath
 	} elseif ($serviceContainer -eq 'nssm') {
@@ -219,12 +219,12 @@ function Install-WindowsService {
 
 		if (split-path $binPath) {
 			$destinationPath = "$(split-path $binPath)\nssm.exe"
-			if (-not (Test-Path $destinationPath)) {
-				copy-item $servicePath $destinationPath
-			}
 		} else {
 			$destinationPath =	"$rootPath\nssm.exe"
 		} 
+		if (-not (Test-Path $destinationPath)) {
+			copy-item $servicePath $destinationPath
+		}		
 		$servicePath = $destinationPath		
 	} else {
 		$servicePath = "`"$binPath`""
