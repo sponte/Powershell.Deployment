@@ -389,6 +389,16 @@ function Install-Website {
 
 		$bindingProtocols = ($siteConfig.bindings.binding | Select -ExpandProperty protocol) -join ","
 		Set-ItemProperty "IIS:/Sites/$($siteConfig.Name)" -Name enabledProtocols -value $bindingProtocols
+		
+		# set any site properties as defined in https://msdn.microsoft.com/en-us/library/Microsoft.Web.Administration.Site(v=vs.90).aspx
+		Write-Log "Site properties"
+		Write-Log $siteConfig.properties.property
+		foreach($property in $siteConfig.properties.property) {
+			if($property -eq $null) { continue }
+
+			Write-Log "[Sites $($siteConfig.name)] Setting property $($property.Path) = $($property.value)"
+			Set-ItemProperty "IIS:\Sites\$($siteConfig.name)" -Name $property.Path -Value $property.Value
+		}
 
 		# install any custom .net installers that may be in the host assembly
 		$binPath = Join-Path $rootPath "Bin"

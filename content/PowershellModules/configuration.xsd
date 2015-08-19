@@ -578,6 +578,7 @@
     <xs:all>
       <xs:element name="bindings" type="bindings" minOccurs="0" maxOccurs="1" />
       <xs:element name="appPool" type="appPool" minOccurs="0" maxOccurs="1" />
+      <xs:element name="properties" type="siteProperties" minOccurs="0" maxOccurs="1" />
       <xs:element name="applications" type="applications" minOccurs="0" maxOccurs="1">
         <xs:unique name="UniqueApplicationAlias">
           <xs:selector xpath="application" />
@@ -594,6 +595,18 @@
     <xs:attribute name="name" default="Container" />
     <xs:attribute name="containerOnly" default="false" type="xs:boolean" />
   </xs:complexType>
+
+  <xs:complexType name="siteProperties">
+    <xs:sequence>
+      <xs:element name="property" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="path" use="required" />
+          <xs:attribute name="value" use="required" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  
 
   <xs:complexType name="virtualDirectories">
     <xs:sequence>
