@@ -372,7 +372,14 @@ function Set-ConfigurationTemplateDefaultsForWindowsService {
             $element.InnerText = "delayed-auto"
             $WindowsService.AppendChild($element) | Out-Null
         }
+
+        #Must be the last element to pass xsd validation
+        if($WindowsService.dependsOnServices -ne $null) {
+            $element = $WindowsService.dependsOnServices
+            $WindowsService.AppendChild($element) | Out-Null
+        }        
     }
+
     return $xml.OuterXML
 }
 
@@ -517,21 +524,222 @@ function Merge-Tokens {
         $tokens
     )
 
-    return [regex]::Replace(
+    $tokensMerged = [regex]::Replace(
         $template,
+        '\{\{\s*(?<tokenName>[\$].+?)\s*\}\}',
+        {
+            param($match)
+            $tokenExpression = $match.Groups['tokenName'].Value
+            $replacement = iex $tokenExpression
+            return $replacement
+    })
+
+    $tokensMerged = [regex]::Replace(
+        $tokensMerged,
         '\{\{\s*(?<tokenName>[^\$]+?)\s*\}\}',
         {
             param($match)
-             
+
             $tokenName = $match.Groups['tokenName'].Value
-            
             $replacement = iex "`$tokens.$tokenName"
+
             if($replacement -eq $null) {
                 throw "Could not find replacement token for $tokenName"
             }
             
             return $replacement
     })  
+
+    return $tokensMerged
+}
+
+function Get-SecurityIdentifier {
+	param(
+		[Parameter(Mandatory = $true)]
+		[string]
+		$username
+	)
+
+	if ($username -eq "Administrator"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::AccountAdministratorSid, $null)
+	}
+	elseif ($username -eq "Computer"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::AccountComputersSid, $null)
+	}
+	elseif ($username -eq "Controller"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::AccountControllersSid, $null)
+	}
+	elseif ($username -eq "DomainAdmins"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::AccountDomainAdminsSid, $null)
+	}
+	elseif ($username -eq "DomainGuests"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::AccountDomainGuestsSid, $null)
+	}
+	elseif ($username -eq "DomainUsers"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::AccountDomainUsersSid, $null)
+	}
+	elseif ($username -eq "EnterpriseAdmins"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::AccountEnterpriseAdminsSid, $null)
+	}
+	elseif ($username -eq "Guest"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::AccountGuestSid, $null)
+	}
+	elseif ($username -eq "Krbtgt"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::AccountKrbtgtSid, $null)
+	}
+	elseif ($username -eq "PolicyAdmins"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::AccountPolicyAdminsSid, $null)
+	}
+	elseif ($username -eq "RasAndIasServers"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::AccountRasAndIasServersSid, $null)
+	}
+	elseif ($username -eq "Anonymous"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::AnonymousSid, $null)
+	}
+	elseif ($username -eq "Batch"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BatchSid, $null)
+	}
+	elseif ($username -eq "AccountOperators"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinAccountOperatorsSid, $null)
+	}
+	elseif ($username -eq "BuiltinAdministrators"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid, $null)
+	}
+	elseif ($username -eq "BuiltinAuthorizationAccess"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinAuthorizationAccessSid, $null)
+	}
+	elseif ($username -eq "BuiltinBackupOperators"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinBackupOperatorsSid, $null)
+	}
+	elseif ($username -eq "BuiltinDomain"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinDomainSid, $null)
+	}
+	elseif ($username -eq "BuiltinGuests"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinGuestsSid, $null)
+	}
+	elseif ($username -eq "BuiltinIncomingForestTrustBuilders"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinIncomingForestTrustBuildersSid, $null)
+	}
+	elseif ($username -eq "BuiltinNetworkConfigurationOperators"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinNetworkConfigurationOperatorsSid, $null)
+	}
+	elseif ($username -eq "BuiltinPerformanceLoggingUsers"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinPerformanceLoggingUsersSid, $null)
+	}
+	elseif ($username -eq "BuiltinPerformanceMonitoringUsers"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinPerformanceMonitoringUsersSid, $null)
+	}
+	elseif ($username -eq "BuiltinPowerUsers"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinPowerUsersSid, $null)
+	}
+	elseif ($username -eq "BuiltinPreWindows2000CompatibleAccess"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinPreWindows2000CompatibleAccessSid, $null)
+	}
+	elseif ($username -eq "BuiltinPrintOperators"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinPrintOperatorsSid, $null)
+	}
+	elseif ($username -eq "BuiltinRemoteDesktopUsers"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinRemoteDesktopUsersSid, $null)
+	}
+	elseif ($username -eq "BuiltinReplicator"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinReplicatorSid, $null)
+	}
+	elseif ($username -eq "BuiltinSystemOperators"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinSystemOperatorsSid, $null)
+	}
+	elseif ($username -eq "BuiltinUsers"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinUsersSid, $null)
+	}
+	elseif ($username -eq "CreatorGroupServer"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::CreatorGroupServerSid, $null)
+	}
+	elseif ($username -eq "CreatorGroup"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::CreatorGroupSid, $null)
+	}
+	elseif ($username -eq "CreatorOwnerServer"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::CreatorOwnerServerSid, $null)
+	}
+	elseif ($username -eq "CreatorOwner"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::CreatorOwnerSid, $null)
+	}
+	elseif ($username -eq "Dialup"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::DialupSid, $null)
+	}
+	elseif ($username -eq "DigestAuthentication"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::DigestAuthenticationSid, $null)
+	}
+	elseif ($username -eq "EnterpriseControllers"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::EnterpriseControllersSid, $null)
+	}
+	elseif ($username -eq "Interactive"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::InteractiveSid, $null)
+	}
+	elseif ($username -eq "LocalService"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::LocalServiceSid, $null)
+	}
+	elseif ($username -eq "Local"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::LocalSid, $null)
+	}
+	elseif ($username -eq "LocalSystem"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::LocalSystemSid, $null)
+	}
+	elseif ($username -eq "LogonIds"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::LogonIdsSid, $null)
+	}
+	elseif ($username -eq "MaxDefined"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::MaxDefined, $null)
+	}
+	elseif ($username -eq "NetworkService"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::NetworkServiceSid, $null)
+	}
+	elseif ($username -eq "Network"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::NetworkSid, $null)
+	}
+	elseif ($username -eq "NTAuthority"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::NTAuthoritySid, $null)
+	}
+	elseif ($username -eq "NtlmAuthentication"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::NtlmAuthenticationSid, $null)
+	}
+	elseif ($username -eq "Null"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::NullSid, $null)
+	}
+	elseif ($username -eq "OtherOrganization"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::OtherOrganizationSid, $null)
+	}
+	elseif ($username -eq "Proxy"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::ProxySid, $null)
+	}
+	elseif ($username -eq "RemoteLogonId"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::RemoteLogonIdSid, $null)
+	}
+	elseif ($username -eq "RestrictedCode"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::RestrictedCodeSid, $null)
+	}
+	elseif ($username -eq "SChannelAuthentication"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::SChannelAuthenticationSid, $null)
+	}
+	elseif ($username -eq "Self"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::SelfSid, $null)
+	}
+	elseif ($username -eq "Service"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::ServiceSid, $null)
+	}
+	elseif ($username -eq "TerminalServer"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::TerminalServerSid, $null)
+	}
+	elseif ($username -eq "ThisOrganization"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::ThisOrganizationSid, $null)
+	}
+	elseif ($username -eq "WinBuiltinTerminalServerLicenseServers"){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::WinBuiltinTerminalServerLicenseServersSid, $null)
+	}
+	elseif (($username -eq "World") -or ($username -eq "Everyone")){
+		return New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::WorldSid, $null)
+	}
+	else {
+		return $null
+	}
 }
 
 function Format-AccountName {
@@ -540,6 +748,10 @@ function Format-AccountName {
     )
 
     if([string]::IsNullOrEmpty($account)) {
+        return $account
+    }
+
+    if ($account -eq "Everyone") {
         return $account
     }
 

@@ -200,17 +200,38 @@ function Install-WindowsService {
 		$binPath = (Join-Path $rootPath $binPath.SubString(1, $binPath.Length - 1)).ToString()
 	}
 
-	$useSrvAny = $serviceConfig.srvany -eq $true
+	$serviceContainer = $serviceConfig.serviceContainer
 
-	if ($useSrvAny) {
+	if ($serviceContainer -eq 'srvany') {
 		$servicePath = Join-Path $rootPath "deployment\PowershellModules\Tools\srvany.exe"
-		$destinationPath = "$(split-path $binPath)\srvany.exe"
+		
+		if (split-path $binPath) {
+			$destinationPath = "$(split-path $binPath)\srvany.exe"
+		} else {
+			$destinationPath =	"$rootPath\srvany.exe"
+		}
 		if (-not (Test-Path $destinationPath)) {
 			copy-item $servicePath $destinationPath
 		}
 		$servicePath = $destinationPath
+	} elseif ($serviceContainer -eq 'nssm') {
+		$servicePath = Join-Path $rootPath "deployment\PowershellModules\Tools\nssm.exe"
+
+		if (split-path $binPath) {
+			$destinationPath = "$(split-path $binPath)\nssm.exe"
+		} else {
+			$destinationPath =	"$rootPath\nssm.exe"
+		} 
+		if (-not (Test-Path $destinationPath)) {
+			copy-item $servicePath $destinationPath
+		}		
+		$servicePath = $destinationPath		
 	} else {
-		$servicePath = $binPath
+		$servicePath = "`"$binPath`""
+
+		if ($serviceConfig.arguments) {
+			$servicePath = "$servicePath $($serviceConfig.arguments)"
+		}
 	}
 
 	if([string]::IsNullOrEmpty($serviceConfig.account) -eq $true) {
@@ -222,10 +243,38 @@ function Install-WindowsService {
 		New-Service -binaryPathName $servicePath -name $serviceConfig.name -credential $PSCredentials -displayName $serviceConfig.displayName -startupType Automatic		
 	}
 
-	if ($useSrvAny) {	
+	if ($serviceContainer -eq 'srvany' -or $serviceContainer -eq 'nssm') {	
 		New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)" -Name "Parameters" –Force
-		New-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "Application" -Value "$binPath" 
+		New-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "Application" -Value "$binPath" -Force
+		if ($serviceConfig.arguments) {
+			New-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "AppParameters" -Value "$($serviceConfig.arguments)" -Force
+		} else {
+			if ((Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters").AppParameters -ne $null){
+				Remove-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "AppParameters"
+			}
+		}
 	}
+
+	if ($serviceConfig.description) {
+		$configureServiceDescription = "sc.exe description  $($serviceConfig.name) ""$($serviceConfig.description)"" "
+		Invoke-Expression -Command $configureServiceDescription -ErrorAction Stop
+	}
+
+	$dependsOnServices = '/'
+
+	if ($serviceConfig.dependsOnServices.dependsOnService -ne $null) {
+	    foreach($dependsOnService in @($serviceConfig.dependsOnServices.dependsOnService)) {
+	        if(!$dependsOnService) { continue }
+	        if ($dependsOnServices -eq '/') {
+				$dependsOnServices = $dependsOnService.serviceName
+			} else {
+				$dependsOnServices += "/$($dependsOnService.serviceName)"
+			}
+	    }   
+    } 
+
+	$configureServiceStartup = "sc.exe config $($serviceConfig.name) depend= $dependsOnServices"
+	Invoke-Expression -Command $configureServiceStartup -ErrorAction Stop
 
 	$configureServiceStartup = "sc.exe config $($serviceConfig.name) start= $serviceStartUpType"
 	Invoke-Expression -Command $configureServiceStartup -ErrorAction Stop
@@ -490,6 +539,17 @@ function Uninstall-WindowsService {
 		$removeService = "sc.exe delete $($serviceConfig.name)"
 		Invoke-Expression -Command $removeService -ErrorAction Stop
 
+		$MaximumAttempts = 10
+		$Attempt = 0
+		while ((get-service | ?{$_.Name -eq $serviceConfig.name}).length -gt 0) {
+			$Attempt = $Attempt + 1
+			if ($Attempt -gt $MaximumAttempts){
+				throw "Timeout while waiting for service '$($serviceConfig.name)' to be deleted"
+			}
+			Write-Host "Waiting for service '$($serviceConfig.name)' to be deleted"
+			Sleep 1
+		}
+
 		# uninstall any custom .net installers that may be in the host assembly		
 		$hostAssemblyName = $serviceConfig.name +  ".dll"
 		$hostAssemblyFilePath = (Join-Path $rootPath $hostAssemblyName).ToString()
@@ -552,6 +612,21 @@ function Uninstall-TopshelfService {
 	if ($service)
 	{
 		Stop-WindowsService -serviceConfig $serviceConfig
+
+		# Don't want to force a reboot every uninstall
+		$removeService = "sc.exe delete $($serviceConfig.name)"
+		Invoke-Expression -Command $removeService -ErrorAction Stop
+
+		$MaximumAttempts = 10
+		$Attempt = 0
+		while ((get-service | ?{$_.Name -eq $serviceConfig.name}).length -gt 0) {
+			$Attempt = $Attempt + 1
+			if ($Attempt -gt $MaximumAttempts){
+				throw "Timeout while waiting for service '$($serviceConfig.name)' to be deleted"
+			}
+			Write-Host "Waiting for service '$($serviceConfig.name)' to be deleted"
+			Sleep 1
+		}
 
 		# uninstall service	
 
@@ -625,13 +700,9 @@ function Get-MetadataForWindowsService {
 		$binPath = (Join-Path $rootPath $binPath.SubString(1, $binPath.Length - 1)).ToString()
 	}
 
-	$useSrvAny = $serviceConfig.srvany -eq $true
+	$serviceContainer = $serviceConfig.serviceContainer
 
-	if ($useSrvAny) {
-		$servicePath = $binPath
-	} else {
-		$servicePath = $binPath
-	}
+	$servicePath = $binPath
 
 	$metaData = @()
     $metaData += Get-MetaDataFromAssembly -assemblyFilePath $servicePath 
