@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Powershell.Deployment</id>
-        <version>1.2.0.32</version>
+        <version>1.2.0.33</version>
         <title>Powershell Deployment modules for Visual Studio</title>
         <authors>Stanislaw Wozniak &amp; Taliesin Sisson</authors>
         <owners>Stanislaw Wozniak &amp; Taliesin Sisson</owners>
