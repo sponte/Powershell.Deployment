@@ -372,7 +372,14 @@ function Set-ConfigurationTemplateDefaultsForWindowsService {
             $element.InnerText = "delayed-auto"
             $WindowsService.AppendChild($element) | Out-Null
         }
+
+        #Must be the last element to pass xsd validation
+        if($WindowsService.dependsOnServices -ne $null) {
+            $element = $WindowsService.dependsOnServices
+            $WindowsService.AppendChild($element) | Out-Null
+        }        
     }
+
     return $xml.OuterXML
 }
 

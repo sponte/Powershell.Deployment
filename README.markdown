@@ -54,7 +54,7 @@ Use moustache syntax to access variables in configuration e.g. "http://{{domainN
 
 It can also be any Powershell statement:
 
-Use moustache syntax to access variables in configuration e.g. "http://{{ENV['HOSTNAME'] + '.test.com'}}"
+Use moustache syntax to access variables in configuration e.g. "http://{{$ENV['HOSTNAME'] + '.test.com'}}"
 
 ## Json Parameter Configuration
 

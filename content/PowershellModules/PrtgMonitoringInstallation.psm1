@@ -203,9 +203,10 @@ function Install-PrtgSensor {
 	$sensorDeviceId = $sensorConfig.sensorDeviceId
 	$sensorName = $sensorConfig.sensorName
 	$sensorUrl = $sensorConfig.sensorUrl
+	$sensorTimeout = $sensorConfig.sensorTimeout
 	
-	Write-Log "Install Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a Install"
-	&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -a Install
+	Write-Log "Install Sensor  -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p $sensorUrl -t $sensorTimeout  -a Install"
+	&$apiPath -b $baseSensorId -l $login -h $passwordHash -u $apiUrl -d $sensorDeviceId -n $sensorName -p  $sensorUrl  -t $sensorTimeout -a Install
 
 }
 
