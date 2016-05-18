@@ -169,6 +169,7 @@ function Install-WindowsService {
 
 	if($serviceConfig.account) {
 		$serviceConfig.account = Format-AccountName $serviceConfig.account
+		Grant-LoginAsService $serviceConfig.account
 	}
 
 	$service = GetService $serviceConfig.name
@@ -292,6 +293,7 @@ function Install-NServiceBus {
 
 	if($serviceConfig.account) {
 		$serviceConfig.account = Format-AccountName $serviceConfig.account
+		Grant-LoginAsService $serviceConfig.account
 	}
 
 	$service = GetService $serviceConfig.name
@@ -379,6 +381,7 @@ function Install-TopshelfService {
 
 	if($serviceConfig.account) {
 		$serviceConfig.account = Format-AccountName $serviceConfig.account
+		Grant-LoginAsService $serviceConfig.account
 	}
 
 	$service = GetService $serviceConfig.name
@@ -441,6 +444,7 @@ function Install-JavaService {
 
 	if($serviceConfig.account) {
 		$serviceConfig.account = Format-AccountName $serviceConfig.account
+		Grant-LoginAsService $serviceConfig.account
 	}
 
 	$service = GetService $serviceConfig.name
@@ -775,4 +779,74 @@ function GetService {
     }
 
     return Get-Service -name $serviceName
+}
+
+function Grant-LoginAsService {
+	param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $accountToAdd
+	)
+
+	if( [string]::IsNullOrEmpty($accountToAdd) ) {
+		exit
+	}
+
+	$sidstr = $null
+	try {
+		$ntprincipal = new-object System.Security.Principal.NTAccount "$accountToAdd"
+		$sid = $ntprincipal.Translate([System.Security.Principal.SecurityIdentifier])
+		$sidstr = $sid.Value.ToString()
+	} catch {
+		$sidstr = $null
+	}
+
+	if( [string]::IsNullOrEmpty($sidstr) ) {
+		throw "Account not found!"
+	}
+
+	$tmp = [System.IO.Path]::GetTempFileName()
+
+	&secedit.exe /export /cfg "$($tmp)" 
+
+	$c = Get-Content -Path $tmp 
+
+	$currentSetting = ""
+
+	foreach($s in $c) {
+		if( $s -like "SeServiceLogonRight*") {
+			$x = $s.split("=",[System.StringSplitOptions]::RemoveEmptyEntries)
+			$currentSetting = $x[1].Trim()
+		}
+	}
+
+	if( $currentSetting -notlike "*$($sidstr)*" ) {	
+		if( [string]::IsNullOrEmpty($currentSetting) ) {
+			$currentSetting = "*$($sidstr)"
+		} else {
+			$currentSetting = "*$($sidstr),$($currentSetting)"
+		}
+		
+$outfile = @"
+[Unicode]
+Unicode=yes
+[Version]
+signature="`$CHICAGO`$"
+Revision=1
+[Privilege Rights]
+SeServiceLogonRight = $($currentSetting)
+"@
+
+		$tmp2 = [System.IO.Path]::GetTempFileName()
+		
+		$outfile | Set-Content -Path $tmp2 -Encoding Unicode -Force
+
+		Push-Location (Split-Path $tmp2)
+		
+		try {
+			secedit.exe /configure /db "secedit.sdb" /cfg "$($tmp2)" /areas USER_RIGHTS 
+		} finally {	
+			Pop-Location
+		}
+	} 
 }
