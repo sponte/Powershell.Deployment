@@ -110,20 +110,47 @@
   </xs:complexType>
 
   <xs:complexType name="sensor">
-    <xs:attribute name="baseSensorId"  use="required"  >
+    <xs:attribute name="templateGroupName"  use="required">
       <xs:annotation>
-        <xs:documentation>The id of the sensor to copy as a basis for this new sensor as per PRTG api limitations</xs:documentation>
+        <xs:documentation>The group for the template sensor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="sensorDeviceId"  use="required" >
+    <xs:attribute name="templateDeviceName"  use="required"  >
       <xs:annotation>
-        <xs:documentation>Click on the device in PRTG and copy the id value from the querystring</xs:documentation>
+        <xs:documentation>The device for the template sensor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="sensorName"  use="required" />
-    <xs:attribute name="sensorUrl"  use="required"  />
+    <xs:attribute name="templateSensorName"  use="required"  >
+      <xs:annotation>
+        <xs:documentation>The name of the template sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="groupName"  use="required" >
+      <xs:annotation>
+        <xs:documentation>The group for the sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="deviceName"  use="required" >
+      <xs:annotation>
+        <xs:documentation>The device for the sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="sensorName"  use="required" >
+      <xs:annotation>
+        <xs:documentation>The name of the sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>    
     <xs:attribute name="deleteOnUninstall" default="false" type="xs:boolean"  />
-    <xs:attribute name="sensorTimeout"  use="optional" default="0" />
+    <xs:attribute name="sensorTimeout" use="optional" default="0" >
+      <xs:annotation>
+        <xs:documentation>The timeout for the sensor to respond in</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>   
+    <xs:attribute name="sensorUrl"  use="required" >
+      <xs:annotation>
+        <xs:documentation>The url for the service's smoke test end point to monitor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
 
   <xs:complexType name="serviceBusSubscribeSensors">
@@ -133,33 +160,57 @@
   </xs:complexType>
 
   <xs:complexType name="serviceBusSubscribeSensor">
+    <xs:attribute name="templateGroupName"  use="required">
+      <xs:annotation>
+        <xs:documentation>The group for the template sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="templateDeviceName"  use="required"  >
+      <xs:annotation>
+        <xs:documentation>The device for the template sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="templateSensorName"  use="required"  >
+      <xs:annotation>
+        <xs:documentation>The name of the template sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="groupName"  use="required" >
+      <xs:annotation>
+        <xs:documentation>The group for the sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="deviceName"  use="required" >
+      <xs:annotation>
+        <xs:documentation>The device for the sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="sensorName"  use="required" >
+      <xs:annotation>
+        <xs:documentation>The name of the sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="deleteOnUninstall" default="false" type="xs:boolean"  />
+    <xs:attribute name="sensorTimeout" use="optional" default="0" >
+      <xs:annotation>
+        <xs:documentation>The timeout for the sensor to respond in</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>       
     <xs:attribute name="connectionString"  use="required"  >
       <xs:annotation>
-        <xs:documentation>The servicebus connection string</xs:documentation>
+        <xs:documentation>The servicebus connection string for subscription to monitor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="subscriptionTopic"  use="required"  >
       <xs:annotation>
-        <xs:documentation>The topic of this subscription</xs:documentation>
+        <xs:documentation>The topic for the subscription to monitor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="subscriptionName"  use="required"  >
       <xs:annotation>
-        <xs:documentation>The name of this subscription</xs:documentation>
+        <xs:documentation>The name of the subscription to monitor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="sensorName"  use="required" />
-    <xs:attribute name="baseSensorId"  use="required"  >
-      <xs:annotation>
-        <xs:documentation>The id of the sensor to copy as a basis for this new sensor as per PRTG api limitations</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="sensorDeviceId"  use="required" >
-      <xs:annotation>
-        <xs:documentation>Click on the device in PRTG and copy the id value from the querystring</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="deleteOnUninstall" default="false" type="xs:boolean"  />
   </xs:complexType>
 
   <xs:complexType name="certificates">
