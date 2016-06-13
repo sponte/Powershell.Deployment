@@ -110,32 +110,32 @@
   </xs:complexType>
 
   <xs:complexType name="sensor">
-    <xs:attribute name="templateGroupName"  use="required">
+    <xs:attribute name="templateGroupName" use="required">
       <xs:annotation>
         <xs:documentation>The group for the template sensor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="templateDeviceName"  use="required"  >
+    <xs:attribute name="templateDeviceName" use="required"  >
       <xs:annotation>
         <xs:documentation>The device for the template sensor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="templateSensorName"  use="required"  >
+    <xs:attribute name="templateSensorName" use="required"  >
       <xs:annotation>
         <xs:documentation>The name of the template sensor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="groupName"  use="required" >
+    <xs:attribute name="groupName" use="required" >
       <xs:annotation>
         <xs:documentation>The group for the sensor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="deviceName"  use="required" >
+    <xs:attribute name="deviceName" use="required" >
       <xs:annotation>
         <xs:documentation>The device for the sensor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="sensorName"  use="required" >
+    <xs:attribute name="sensorName" use="required" >
       <xs:annotation>
         <xs:documentation>The name of the sensor</xs:documentation>
       </xs:annotation>
@@ -155,39 +155,35 @@
 
   <xs:complexType name="serviceBusSubscribeSensors">
     <xs:sequence>
-      <xs:element name="serviceBusSubscribeSensor" type="serviceBusSubscribeSensor" minOccurs="1" maxOccurs="unbounded" />
+      <xs:element name="conventionServiceBusSubscribeSensor" type="conventionServiceBusSubscribeSensor" minOccurs="1" maxOccurs="1" />
+      <xs:element name="serviceBusSubscribeSensor" type="serviceBusSubscribeSensor" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
   </xs:complexType>
 
-  <xs:complexType name="serviceBusSubscribeSensor">
-    <xs:attribute name="templateGroupName"  use="required">
+  <xs:complexType name="conventionServiceBusSubscribeSensor">
+    <xs:attribute name="templateGroupName" use="required">
       <xs:annotation>
         <xs:documentation>The group for the template sensor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="templateDeviceName"  use="required"  >
+    <xs:attribute name="templateDeviceName" use="required">
       <xs:annotation>
         <xs:documentation>The device for the template sensor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="templateSensorName"  use="required"  >
+    <xs:attribute name="templateSensorName" use="required">
       <xs:annotation>
         <xs:documentation>The name of the template sensor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="groupName"  use="required" >
+    <xs:attribute name="groupName" use="required">
       <xs:annotation>
         <xs:documentation>The group for the sensor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="deviceName"  use="required" >
+    <xs:attribute name="deviceName" use="required">
       <xs:annotation>
         <xs:documentation>The device for the sensor</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="sensorName"  use="required" >
-      <xs:annotation>
-        <xs:documentation>The name of the sensor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="deleteOnUninstall" default="false" type="xs:boolean"  />
@@ -195,18 +191,62 @@
       <xs:annotation>
         <xs:documentation>The timeout for the sensor to respond in</xs:documentation>
       </xs:annotation>
-    </xs:attribute>       
-    <xs:attribute name="connectionString"  use="required"  >
+    </xs:attribute>
+    <xs:attribute name="connectionString" use="required">
       <xs:annotation>
         <xs:documentation>The servicebus connection string for subscription to monitor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="subscriptionTopic"  use="required"  >
+  </xs:complexType>
+
+  <xs:complexType name="serviceBusSubscribeSensor">
+    <xs:attribute name="templateGroupName" use="required">
+      <xs:annotation>
+        <xs:documentation>The group for the template sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="templateDeviceName" use="required">
+      <xs:annotation>
+        <xs:documentation>The device for the template sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="templateSensorName" use="required">
+      <xs:annotation>
+        <xs:documentation>The name of the template sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="groupName" use="required">
+      <xs:annotation>
+        <xs:documentation>The group for the sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="deviceName" use="required">
+      <xs:annotation>
+        <xs:documentation>The device for the sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="sensorName" use="required">
+      <xs:annotation>
+        <xs:documentation>The name of the sensor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="deleteOnUninstall" default="false" type="xs:boolean" />
+    <xs:attribute name="sensorTimeout" use="optional" default="0" >
+      <xs:annotation>
+        <xs:documentation>The timeout for the sensor to respond in</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>       
+    <xs:attribute name="connectionString" use="required">
+      <xs:annotation>
+        <xs:documentation>The servicebus connection string for subscription to monitor</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="subscriptionTopic" use="required">
       <xs:annotation>
         <xs:documentation>The topic for the subscription to monitor</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="subscriptionName"  use="required"  >
+    <xs:attribute name="subscriptionName" use="required">
       <xs:annotation>
         <xs:documentation>The name of the subscription to monitor</xs:documentation>
       </xs:annotation>

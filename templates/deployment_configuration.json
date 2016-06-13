@@ -1,11 +1,2 @@
 {
-    
-    "ConnectionStrings": [
-        {
-            "Name": "eRes"
-        },
-        {
-            "Name": "Seating"
-        }
-    ]
 }

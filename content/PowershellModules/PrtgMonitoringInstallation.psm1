@@ -11,7 +11,7 @@
     foreach($prtgMonitorConfig in @($configuration.configuration.prtgMonitors.prtgMonitor)) {
         if(!$prtgMonitorConfig) { continue }
         
-        Install-PrtgMonitor -rootPath $rootPath -prtgMonitorConfig $prtgMonitorConfig
+        Install-PrtgMonitor -rootPath $rootPath -prtgMonitorConfig $prtgMonitorConfig -serviceBusConfig $configuration.configuration.serviceBuses
     }
 }
 
@@ -27,7 +27,7 @@ function Uninstall-PrtgMonitors {
     
     foreach($prtgMonitorConfig in @($configuration.configuration.prtgMonitors.prtgMonitor)) {
         if(!$prtgMonitorConfig) { continue }
-        Remove-PrtgMonitor -rootPath $rootPath -prtgMonitorConfig $prtgMonitorConfig
+        Remove-PrtgMonitor -rootPath $rootPath -prtgMonitorConfig $prtgMonitorConfig -serviceBusConfig $configuration.configuration.serviceBuses
     }
 }
 
@@ -43,7 +43,7 @@ function Stop-PrtgMonitors {
     
     foreach($prtgMonitorConfig in @($configuration.configuration.prtgMonitors.prtgMonitor)) {
         if(!$prtgMonitorConfig) { continue }
-        Stop-PrtgMonitor -rootPath $rootPath -prtgMonitorConfig $prtgMonitorConfig
+        Stop-PrtgMonitor -rootPath $rootPath -prtgMonitorConfig $prtgMonitorConfig -serviceBusConfig $configuration.configuration.serviceBuses
     }
 }
 
@@ -59,7 +59,7 @@ function Start-PrtgMonitors {
     
     foreach($prtgMonitorConfig in @($configuration.configuration.prtgMonitors.prtgMonitor)) {
         if(!$prtgMonitorConfig) { continue }
-        Start-PrtgMonitor -rootPath $rootPath -prtgMonitorConfig $prtgMonitorConfig
+        Start-PrtgMonitor -rootPath $rootPath -prtgMonitorConfig $prtgMonitorConfig -serviceBusConfig $configuration.configuration.serviceBuses
     }
 }
 
@@ -72,12 +72,45 @@ function Install-PrtgMonitor {
         $rootPath,     
         [Parameter(Mandatory = $true)]
         [System.XML.XMLElement]
-        $prtgMonitorConfig
+        $prtgMonitorConfig,
+        [Parameter(Mandatory = $false)]
+        [System.XML.XMLElement]
+        $serviceBusConfig
     )
 
     foreach($sensorConfig in @($prtgMonitorConfig.sensors.sensor)) {
         if(!$sensorConfig) { continue }
         Install-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+    }
+
+    if ($serviceBusConfig) {
+        if ($prtgMonitorConfig.serviceBusSubscribeSensors.conventionServiceBusSubscribeSensor) {
+            $conventionServiceBusSubscribeSensorConfig = $prtgMonitorConfig.serviceBusSubscribeSensors.conventionServiceBusSubscribeSensor
+
+            foreach($serviceBusTopicConfig in @($serviceBusConfig.serviceBus.topics.topic)) {
+                if(!$serviceBusTopicConfig) { continue }
+
+                foreach($serviceBusTopicSubscriptionConfig in @($serviceBusTopicConfig.subscriptions.subscription)) {
+                    if(!$serviceBusTopicSubscriptionConfig) { continue }
+
+                    $deleteOnUninstall = $conventionServiceBusSubscribeSensorConfig.deleteOnUninstall
+                    $sensorTimeout = $conventionServiceBusSubscribeSensorConfig.sensorTimeout
+                    $connectionString = $conventionServiceBusSubscribeSensorConfig.connectionString
+                    $templateGroupName = $conventionServiceBusSubscribeSensorConfig.templateGroupName
+                    $templateDeviceName = $conventionServiceBusSubscribeSensorConfig.templateDeviceName
+                    $templateSensorName = $conventionServiceBusSubscribeSensorConfig.templateSensorName
+
+                    $subscriptionTopic = $serviceBusTopicConfig.name
+                    $subscriptionName = $serviceBusTopicSubscriptionConfig.name
+                    $groupName = $conventionServiceBusSubscribeSensorConfig.groupName
+                    $deviceName = $conventionServiceBusSubscribeSensorConfig.deviceName
+                    $sensorName = "$($subscriptionTopic)-$($subscriptionName)"
+                    $sensorParameter = "-connectionString  '$($connectionString)' -topic '$($subscriptionTopic)' -subscriptionName '$($subscriptionName)'"
+                
+                    Install-PrtgConventionServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName -deleteOnUninstall $deleteOnUninstall -sensorTimeout $sensorTimeout -templateGroupName $templateGroupName -templateDeviceName $templateDeviceName -templateSensorName $templateSensorName -sensorParameter $sensorParameter
+                }
+            }            
+        }
     }
 
     foreach($sensorConfig in @($prtgMonitorConfig.serviceBusSubscribeSensors.serviceBusSubscribeSensor)) {
@@ -93,7 +126,10 @@ function Remove-PrtgMonitor {
         $rootPath,     
         [Parameter(Mandatory = $true)]
         [System.XML.XMLElement]
-        $prtgMonitorConfig
+        $prtgMonitorConfig,
+        [Parameter(Mandatory = $false)]
+        [System.XML.XMLElement]
+        $serviceBusConfig
     )
 
     foreach($sensorConfig in @($prtgMonitorConfig.sensors.sensor)) {
@@ -101,6 +137,33 @@ function Remove-PrtgMonitor {
         if(Test-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
         { 
             Remove-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+        }
+    }
+
+    if ($serviceBusConfig) {
+        if ($prtgMonitorConfig.serviceBusSubscribeSensors.conventionServiceBusSubscribeSensor) {
+            $conventionServiceBusSubscribeSensorConfig = $prtgMonitorConfig.serviceBusSubscribeSensors.conventionServiceBusSubscribeSensor
+
+            foreach($serviceBusTopicConfig in @($serviceBusConfig.serviceBus.topics.topic)) {
+                if(!$serviceBusTopicConfig) { continue }
+
+                foreach($serviceBusTopicSubscriptionConfig in @($serviceBusTopicConfig.subscriptions.subscription)) {
+                    if(!$serviceBusTopicSubscriptionConfig) { continue }
+
+                    $deleteOnUninstall = $conventionServiceBusSubscribeSensorConfig.deleteOnUninstall
+                    $subscriptionTopic = $serviceBusTopicConfig.name
+                    $subscriptionName = $serviceBusTopicSubscriptionConfig.name
+                    $groupName = $conventionServiceBusSubscribeSensorConfig.groupName
+                    $deviceName = $conventionServiceBusSubscribeSensorConfig.deviceName
+                    $sensorName = "$($subscriptionTopic)-$($subscriptionName)"
+                
+                    if(Test-PrtgConventionServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName) 
+                    { 
+                        Write-Output "Remove PrtgConventionServiceBusSubscribeSensor"
+                        Remove-PrtgConventionServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName -deleteOnUninstall $deleteOnUninstall
+                    }
+                }
+            }            
         }
     }
 
@@ -120,7 +183,10 @@ function Stop-PrtgMonitor {
         $rootPath,     
         [Parameter(Mandatory = $true)]
         [System.XML.XMLElement]
-        $prtgMonitorConfig
+        $prtgMonitorConfig,
+        [Parameter(Mandatory = $false)]
+        [System.XML.XMLElement]
+        $serviceBusConfig
     )
 
     foreach($sensorConfig in @($prtgMonitorConfig.sensors.sensor)) {
@@ -128,6 +194,32 @@ function Stop-PrtgMonitor {
         if(Test-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
         { 
             Stop-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+        }
+    }
+
+    if ($serviceBusConfig) {
+        if ($prtgMonitorConfig.serviceBusSubscribeSensors.conventionServiceBusSubscribeSensor) {
+            $conventionServiceBusSubscribeSensorConfig = $prtgMonitorConfig.serviceBusSubscribeSensors.conventionServiceBusSubscribeSensor
+
+            foreach($serviceBusTopicConfig in @($serviceBusConfig.serviceBus.topics.topic)) {
+                if(!$serviceBusTopicConfig) { continue }
+
+                foreach($serviceBusTopicSubscriptionConfig in @($serviceBusTopicConfig.subscriptions.subscription)) {
+                    if(!$serviceBusTopicSubscriptionConfig) { continue }
+
+                    $subscriptionTopic = $serviceBusTopicConfig.name
+                    $subscriptionName = $serviceBusTopicSubscriptionConfig.name
+                    $groupName = $conventionServiceBusSubscribeSensorConfig.groupName
+                    $deviceName = $conventionServiceBusSubscribeSensorConfig.deviceName
+                    $sensorName = "$($subscriptionTopic)-$($subscriptionName)"
+                
+                    if(Test-PrtgConventionServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName) 
+                    { 
+                        Write-Output "Stop PrtgConventionServiceBusSubscribeSensor"
+                        Stop-PrtgConventionServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+                    }
+                }
+            }            
         }
     }
 
@@ -148,7 +240,10 @@ function Start-PrtgMonitor {
         $rootPath,     
         [Parameter(Mandatory = $true)]
         [System.XML.XMLElement]
-        $prtgMonitorConfig
+        $prtgMonitorConfig,
+        [Parameter(Mandatory = $false)]
+        [System.XML.XMLElement]
+        $serviceBusConfig
     )
 
     foreach($sensorConfig in @($prtgMonitorConfig.sensors.sensor)) {
@@ -156,6 +251,32 @@ function Start-PrtgMonitor {
         if(Test-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig) 
         {             
             Start-PrtgSensor $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -sensorConfig $sensorConfig
+        }
+    }
+
+    if ($serviceBusConfig) {
+        if ($prtgMonitorConfig.serviceBusSubscribeSensors.conventionServiceBusSubscribeSensor) {
+            $conventionServiceBusSubscribeSensorConfig = $prtgMonitorConfig.serviceBusSubscribeSensors.conventionServiceBusSubscribeSensor
+
+            foreach($serviceBusTopicConfig in @($serviceBusConfig.serviceBus.topics.topic)) {
+                if(!$serviceBusTopicConfig) { continue }
+
+                foreach($serviceBusTopicSubscriptionConfig in @($serviceBusTopicConfig.subscriptions.subscription)) {
+                    if(!$serviceBusTopicSubscriptionConfig) { continue }
+
+                    $subscriptionTopic = $serviceBusTopicConfig.name
+                    $subscriptionName = $serviceBusTopicSubscriptionConfig.name
+                    $groupName = $conventionServiceBusSubscribeSensorConfig.groupName
+                    $deviceName = $conventionServiceBusSubscribeSensorConfig.deviceName
+                    $sensorName = "$($subscriptionTopic)-$($subscriptionName)"
+                
+                    if(Test-PrtgConventionServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName) 
+                    { 
+                        Write-Output "Start PrtgConventionServiceBusSubscribeSensor"
+                        Start-PrtgConventionServiceBusSubscribeSensors $rootPath -apiUrl $prtgMonitorConfig.url -login $prtgMonitorConfig.login -passwordHash $prtgMonitorConfig.passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+                    }
+                }
+            }            
         }
     }
 
@@ -205,21 +326,63 @@ function Install-PrtgSensor {
     $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
     if (!$sensorId){
-        Write-Log "Getting PrtgSensor template sensor id for $templateGroupName/$templateDeviceName/$templateSensorName"
-        $templateSensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $templateGroupName -deviceName $templateDeviceName -sensorName $templateSensorName
+        Write-Log "Getting PrtgSensor group id for $groupName"
+        $groupId = Get-PrtgGroup -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName
+        if (!$groupId){
+            throw "Unable to get group id for $groupName"
+        }
+        Write-Log "PrtgSensor group id is $groupId"
 
         Write-Log "Getting PrtgSensor device id for $groupName/$deviceName"
         $deviceId = Get-PrtgDevice -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName
-    
-        Write-Log "Copying PrtgSensor sensor from $templateGroupName/$templateDeviceName/$templateSensorName to $groupName/$deviceName/$sensorName"
-        $sensorId = Copy-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -templateSensorId $templateSensorId -deviceId -sensorName $sensorName
+        if (!$deviceId){
+            Write-Log "Device does not exist so copy it from template"
 
+            Write-Log "Getting PrtgSensor template device id for $templateGroupName/$templateDeviceName"
+            $templateDeviceId = Get-PrtgDevice -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $templateGroupName -deviceName $templateDeviceName
+            if (!$templateDeviceId){
+                throw "Unable to get template device id for $templateGroupName/$templateDeviceName"
+            }
+            Write-Log "PrtgSensor template device id is $templateDeviceId"
+
+            Write-Log "Copying PrtgSensor device from $templateGroupName/$templateDeviceName to $groupName/$deviceName"
+            $deviceId = Copy-PrtgDevice -apiUrl $apiUrl -login $login -passwordHash $passwordHash -templateDeviceId $templateDeviceId -groupId $groupId -deviceName $deviceName
+            if (!$deviceId){
+                throw "Unable to copy device from $templateGroupName/$templateDeviceName to $groupName/$deviceName "
+            }
+        }
+        Write-Log "PrtgSensor device id is $deviceId"
+
+
+        Write-Log "Getting PrtgSensor template sensor id for $templateGroupName/$templateDeviceName/$templateSensorName"
+        $templateSensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $templateGroupName -deviceName $templateDeviceName -sensorName $templateSensorName
+        if (!$templateSensorId){
+            throw "Unable to get template sensor id for $templateGroupName/$templateDeviceName/$templateSensorName"
+        }
+        Write-Log "PrtgSensor template sensor id is $templateSensorId"
+
+        Write-Log "Copying PrtgSensor sensor from $templateGroupName/$templateDeviceName/$templateSensorName to $groupName/$deviceName/$sensorName"
+        $sensorId = Copy-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -templateSensorId $templateSensorId -deviceId $deviceId -sensorName $sensorName
+        if (!$sensorId){
+            throw "Unable to copy sensor from $templateGroupName/$templateDeviceName/$templateSensorName to $groupName/$deviceName/$sensorName "
+        }
+ 
+        Write-Log "PrtgSensor sensor id is $sensorId"
+       
         Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-        Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
+        $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
+        if (!$result){
+            throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+        } 
+        Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
 
         if ($sensorTimeout -ne 0){
-            Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-            Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+            Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout to $sensorParameter"
+            $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+            if (!$result){
+                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+            } 
+            Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
         }
     } else {
         Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/exeparams"
@@ -227,7 +390,11 @@ function Install-PrtgSensor {
 
         if ($oldSensorParameter -ne $sensorParameter){
             Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-            Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
+            $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
+            if (!$result){
+                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+            } 
+            Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
         }
 
         if ($sensorTimeout -ne 0){
@@ -236,7 +403,11 @@ function Install-PrtgSensor {
 
             if ($oldSensorTimeout -ne $sensorTimeout){
                 Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-                Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+                $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+                if (!$result){
+                    throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                } 
+                Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
             }
         }
     }
@@ -371,6 +542,284 @@ function Test-PrtgSensor {
 
 # Methods for single items PrtgServiceBusSubscribeSensors
 
+function Install-PrtgConventionServiceBusSubscribeSensors {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $rootPath,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $apiUrl,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $login,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $passwordHash,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $deleteOnUninstall, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $sensorTimeout, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $sensorParameter, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $templateGroupName,   
+        [Parameter(Mandatory = $true)]
+        [string]
+        $templateDeviceName,   
+        [Parameter(Mandatory = $true)]
+        [string]
+        $templateSensorName,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $groupName, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $deviceName, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $sensorName
+    )
+
+    Write-Log "Getting sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
+    $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+
+    if (!$sensorId){
+        Write-Log "Getting PrtgSensor group id for $groupName"
+        $groupId = Get-PrtgGroup -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName
+        if (!$groupId){
+            throw "Unable to get group id for $groupName"
+        }
+        Write-Log "PrtgSensor group id is $groupId"
+
+        Write-Log "Getting PrtgSensor device id for $groupName/$deviceName"
+        $deviceId = Get-PrtgDevice -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName
+        if (!$deviceId){
+            Write-Log "Device does not exist so copy it from template"
+
+            Write-Log "Getting PrtgSensor template device id for $templateGroupName/$templateDeviceName"
+            $templateDeviceId = Get-PrtgDevice -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $templateGroupName -deviceName $templateDeviceName
+            if (!$templateDeviceId){
+                throw "Unable to get template device id for $templateGroupName/$templateDeviceName"
+            }
+            Write-Log "PrtgSensor template device id is $templateDeviceId"
+
+            Write-Log "Copying PrtgSensor device from $templateGroupName/$templateDeviceName to $groupName/$deviceName"
+            $deviceId = Copy-PrtgDevice -apiUrl $apiUrl -login $login -passwordHash $passwordHash -templateDeviceId $templateDeviceId -groupId $groupId -deviceName $deviceName
+            if (!$deviceId){
+                throw "Unable to copy device from $templateGroupName/$templateDeviceName to $groupName/$deviceName "
+            }
+        }
+        Write-Log "PrtgSensor device id is $deviceId"
+
+
+        Write-Log "Getting PrtgSensor template sensor id for $templateGroupName/$templateDeviceName/$templateSensorName"
+        $templateSensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $templateGroupName -deviceName $templateDeviceName -sensorName $templateSensorName
+        if (!$templateSensorId){
+            throw "Unable to get template sensor id for $templateGroupName/$templateDeviceName/$templateSensorName"
+        }
+        Write-Log "PrtgSensor template sensor id is $templateSensorId"
+
+        Write-Log "Copying PrtgSensor sensor from $templateGroupName/$templateDeviceName/$templateSensorName to $groupName/$deviceName/$sensorName"
+        $sensorId = Copy-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -templateSensorId $templateSensorId -deviceId $deviceId -sensorName $sensorName
+        if (!$sensorId){
+            throw "Unable to copy sensor from $templateGroupName/$templateDeviceName/$templateSensorName to $groupName/$deviceName/$sensorName "
+        }
+ 
+        Write-Log "PrtgSensor sensor id is $sensorId"
+       
+        Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
+        $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
+        if (!$result){
+            throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+        } 
+        Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+
+        if ($sensorTimeout -ne 0){
+            Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout to $sensorParameter"
+            $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+            if (!$result){
+                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+            } 
+            Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+        }
+    } else {
+        Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/exeparams"
+        $oldSensorParameter = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams"
+
+        if ($oldSensorParameter -ne $sensorParameter){
+            Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
+            $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
+            if (!$result){
+                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+            } 
+            Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+        }
+
+        if ($sensorTimeout -ne 0){
+            Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/timeout"
+            $oldSensorTimeout = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout"
+
+            if ($oldSensorTimeout -ne $sensorTimeout){
+                Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
+                $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+                if (!$result){
+                    throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                } 
+                Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+            }
+        }
+    }   
+}
+
+function Remove-PrtgConventionServiceBusSubscribeSensors {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $rootPath,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $apiUrl,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $login,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $passwordHash,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $deleteOnUninstall, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $groupName, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $deviceName, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $sensorName
+    )
+
+    if($deleteOnUninstall -eq $true -or $deleteOnUninstall -eq 1 )
+    {
+        $groupName = $sensorConfig.groupName
+        $deviceName = $sensorConfig.deviceName
+        $sensorName = $sensorConfig.sensorName
+
+        Write-Log "Getting sensor id for PrtgServiceBusSubscribeSensors for $groupName/$deviceName/$sensorName"
+        $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+
+        Write-Log "Delete PrtgServiceBusSubscribeSensors for $sensorId"
+        Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+    }
+    else    
+    {
+        Write-Log "Removal of sensor not allowed"
+    }
+}
+
+function Stop-PrtgConventionServiceBusSubscribeSensors {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $rootPath,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $apiUrl,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $login,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $passwordHash,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $groupName, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $deviceName, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $sensorName
+    )
+
+    Write-Log "Getting sensor id for PrtgServiceBusSubscribeSensor for $groupName/$deviceName/$sensorName"
+    $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+
+    Write-Log "Pause PrtgServiceBusSubscribeSensor for $sensorId"
+    Stop-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -message "Pause for deployment"
+}
+
+function Start-PrtgConventionServiceBusSubscribeSensors {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $rootPath,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $apiUrl,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $login,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $passwordHash,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $groupName, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $deviceName, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $sensorName
+    )
+
+    Write-Log "Getting sensor id for PrtgServiceBusSubscribeSensor for $groupName/$deviceName/$sensorName"
+    $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+
+    Write-Log "Resume PrtgServiceBusSubscribeSensor for $sensorId"
+    Start-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+}
+
+function Test-PrtgConventionServiceBusSubscribeSensors {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $rootPath,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $apiUrl,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $login,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $passwordHash, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $groupName, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $deviceName, 
+        [Parameter(Mandatory = $true)]
+        [string]
+        $sensorName
+    )
+
+    Write-Log "Checking PrtgServiceBusSubscribeSensor for $groupName/$deviceName/$sensorName"
+    $sensor = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+
+    return ($sensor -ne $null)
+}
+
+
+# Methods for single items PrtgServiceBusSubscribeSensors
+
 function Install-PrtgServiceBusSubscribeSensors {
     param(
         [Parameter(Mandatory = $true)]
@@ -401,45 +850,95 @@ function Install-PrtgServiceBusSubscribeSensors {
     $sensorTimeout = $sensorConfig.sensorTimeout
     $sensorParameter = "-connectionString  '$($sensorConfig.connectionString)' -topic '$($sensorConfig.subscriptionTopic)' -subscriptionName '$($sensorConfig.subscriptionName)'"
 
-    Write-Log "Getting sensor id for PrtgServiceBusSubscribeSensors for $groupName/$deviceName/$sensorName"
+    Write-Log "Getting sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
     $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
     if (!$sensorId){
-        Write-Log "Getting PrtgServiceBusSubscribeSensor template sensor id for $templateGroupName/$templateDeviceName/$templateSensorName"
-        $templateSensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $templateGroupName -deviceName $templateDeviceName -sensorName $templateSensorName
+        Write-Log "Getting PrtgSensor group id for $groupName"
+        $groupId = Get-PrtgGroup -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName
+        if (!$groupId){
+            throw "Unable to get group id for $groupName"
+        }
+        Write-Log "PrtgSensor group id is $groupId"
 
-        Write-Log "Getting PrtgServiceBusSubscribeSensor device id for $groupName/$deviceName"
+        Write-Log "Getting PrtgSensor device id for $groupName/$deviceName"
         $deviceId = Get-PrtgDevice -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName
-    
-        Write-Log "Copying PrtgServiceBusSubscribeSensor sensor from $templateGroupName/$templateDeviceName/$templateSensorName to $groupName/$deviceName/$sensorName"
-        $sensorId = Copy-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -templateSensorId $templateSensorId -deviceId -sensorName $sensorName
+        if (!$deviceId){
+            Write-Log "Device does not exist so copy it from template"
 
-        Write-Log "Setting PrtgServiceBusSubscribeSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-        Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
+            Write-Log "Getting PrtgSensor template device id for $templateGroupName/$templateDeviceName"
+            $templateDeviceId = Get-PrtgDevice -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $templateGroupName -deviceName $templateDeviceName
+            if (!$templateDeviceId){
+                throw "Unable to get template device id for $templateGroupName/$templateDeviceName"
+            }
+            Write-Log "PrtgSensor template device id is $templateDeviceId"
+
+            Write-Log "Copying PrtgSensor device from $templateGroupName/$templateDeviceName to $groupName/$deviceName"
+            $deviceId = Copy-PrtgDevice -apiUrl $apiUrl -login $login -passwordHash $passwordHash -templateDeviceId $templateDeviceId -groupId $groupId -deviceName $deviceName
+            if (!$deviceId){
+                throw "Unable to copy device from $templateGroupName/$templateDeviceName to $groupName/$deviceName "
+            }
+        }
+        Write-Log "PrtgSensor device id is $deviceId"
+
+
+        Write-Log "Getting PrtgSensor template sensor id for $templateGroupName/$templateDeviceName/$templateSensorName"
+        $templateSensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $templateGroupName -deviceName $templateDeviceName -sensorName $templateSensorName
+        if (!$templateSensorId){
+            throw "Unable to get template sensor id for $templateGroupName/$templateDeviceName/$templateSensorName"
+        }
+        Write-Log "PrtgSensor template sensor id is $templateSensorId"
+
+        Write-Log "Copying PrtgSensor sensor from $templateGroupName/$templateDeviceName/$templateSensorName to $groupName/$deviceName/$sensorName"
+        $sensorId = Copy-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -templateSensorId $templateSensorId -deviceId $deviceId -sensorName $sensorName
+        if (!$sensorId){
+            throw "Unable to copy sensor from $templateGroupName/$templateDeviceName/$templateSensorName to $groupName/$deviceName/$sensorName "
+        }
+ 
+        Write-Log "PrtgSensor sensor id is $sensorId"
+       
+        Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
+        $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
+        if (!$result){
+            throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+        } 
+        Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
 
         if ($sensorTimeout -ne 0){
-            Write-Log "Setting PrtgServiceBusSubscribeSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-            Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+            Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout to $sensorParameter"
+            $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+            if (!$result){
+                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+            } 
+            Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
         }
     } else {
-        Write-Log "Getting PrtgServiceBusSubscribeSensor sensor property for $groupName/$deviceName/$sensorName/exeparams"
+        Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/exeparams"
         $oldSensorParameter = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams"
 
         if ($oldSensorParameter -ne $sensorParameter){
-            Write-Log "Setting PrtgServiceBusSubscribeSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-            Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
+            Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
+            $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
+            if (!$result){
+                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+            } 
+            Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
         }
 
         if ($sensorTimeout -ne 0){
-            Write-Log "Getting PrtgServiceBusSubscribeSensor sensor property for $groupName/$deviceName/$sensorName/timeout"
+            Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/timeout"
             $oldSensorTimeout = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout"
 
             if ($oldSensorTimeout -ne $sensorTimeout){
-                Write-Log "Setting PrtgServiceBusSubscribeSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-                Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+                Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
+                $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+                if (!$result){
+                    throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                } 
+                Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
             }
         }
-    }
+    }   
 }
 
 function Remove-PrtgServiceBusSubscribeSensors {
@@ -590,11 +1089,15 @@ function Get-PrtgSensor {
         $sensorName
     )
 
-    $url = "$($apiUrl)/api/table.json?content=sensors&output=json&columns=objid,group,device,sensor&filter_sensor=$([uri]::EscapeDataString($sensorName))&username=$($login)&passhash=$($passwordHash)"
+    if (!$apiUrl.EndsWith("/")){
+        $apiUrl += "/"
+    }
 
-    $response = Invoke-WebRequest -UseBasicParsing -Uri $url
+    $url = "$($apiUrl)api/table.json?content=sensors&output=json&columns=objid,group,device,sensor&filter_sensor=$([uri]::EscapeDataString($sensorName))&username=$($login)&passhash=$($passwordHash)"
 
-    if (!($response.StatusCode -gt 199 -and $response.StatusCode -lt 300)){
+    $response = Invoke-WebRequestWithoutException -Uri $url
+
+    if (!([int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300)){
         return $null
     }
 
@@ -632,17 +1135,26 @@ function Get-PrtgDevice {
         $deviceName
     )
 
-    $url = "$($apiUrl)/api/table.json?content=devices&output=json&columns=objid,group,device&filter_device=$([uri]::EscapeDataString($deviceName))&username=$($login)&passhash=$($passwordHash)"
+    if (!$apiUrl.EndsWith("/")){
+        $apiUrl += "/"
+    }   
 
-    $response = Invoke-WebRequest -UseBasicParsing -Uri $url
+    $url = "$($apiUrl)api/table.json?content=devices&output=json&columns=objid,group,device&filter_device=$([uri]::EscapeDataString($deviceName))&username=$($login)&passhash=$($passwordHash)"
 
-    if (!($response.StatusCode -gt 199 -and $response.StatusCode -lt 300)){
+    $response = Invoke-WebRequestWithoutException -Uri $url
+
+    if (!([int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300)){
         return $null
     }
 
     $body = ConvertFrom-Json -InputObject $response.Content
 
-    $matchingDevices = @($body.sensors | ?{$_.group -eq $groupName -and $_.device -eq $deviceName})
+    if (!$body.devices)
+    {
+        throw "Unable to get prtg device. Response is: $($response.Content)"
+    }
+
+    $matchingDevices = @($body.devices | ?{$_.group -eq $groupName -and $_.device -eq $deviceName})
 
     if (!$matchingDevices){
         return $null
@@ -653,6 +1165,54 @@ function Get-PrtgDevice {
     }
 
     return $matchingDevices[0].objid
+}
+
+function Get-PrtgGroup {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $apiUrl,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $login,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $passwordHash,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $groupName
+    )
+
+    if (!$apiUrl.EndsWith("/")){
+        $apiUrl += "/"
+    }   
+
+    $url = "$($apiUrl)api/table.json?content=groups&output=json&columns=objid,group&filter_group=$([uri]::EscapeDataString($groupName))&username=$($login)&passhash=$($passwordHash)"
+
+    $response = Invoke-WebRequestWithoutException -Uri $url
+
+    if (!([int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300)){
+        return $null
+    }
+
+    $body = ConvertFrom-Json -InputObject $response.Content
+
+    if (!$body.groups)
+    {
+        throw "Unable to get prtg group. Response is: $($response.Content)"
+    }
+
+    $matchingGroups = @($body.groups | ?{$_.group -eq $groupName})
+
+    if (!$matchingGroups){
+        return $null
+    }
+
+    if ($matchingGroups.Count -gt 1){
+        throw "Matches multiple groups"
+    }
+
+    return $matchingGroups[0].objid
 }
 
 function Get-PrtgObjectProperty {
@@ -673,12 +1233,16 @@ function Get-PrtgObjectProperty {
         [string]
         $propertyName
     )
+
+    if (!$apiUrl.EndsWith("/")){
+        $apiUrl += "/"
+    }   
             
-    $url = "$($apiUrl)/api/getobjectproperty.htm?id=$($objectId)&name=$($propertyName)&username=$($login)&passhash=$($passwordHash)"
+    $url = "$($apiUrl)api/getobjectproperty.htm?id=$($objectId)&name=$($propertyName)&username=$($login)&passhash=$($passwordHash)"
 
-    $response = Invoke-WebRequest -UseBasicParsing -Uri $url
+    $response = Invoke-WebRequestWithoutException -Uri $url
 
-    if (!($response.StatusCode -gt 199 -and $response.StatusCode -lt 300)){
+    if (!([int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300)){
         return $null
     }
 
@@ -711,10 +1275,18 @@ function Copy-PrtgSensor {
         $sensorName
     )
 
-    $url = "$($apiUrl)/api/duplicateobject.htm?id=$($templateSensorId)&name=$([uri]::EscapeDataString($sensorName))&targetid=$($deviceId)&username=$($login)&passhash=$($passwordHash)"
-    $response = Invoke-WebRequest -UseBasicParsing -Uri $url
+    if (!$apiUrl.EndsWith("/")){
+        $apiUrl += "/"
+    }   
 
-    if ($response.StatusCode -eq 302){
+    $url = "$($apiUrl)api/duplicateobject.htm?id=$($templateSensorId)&name=$([uri]::EscapeDataString($sensorName))&targetid=$($deviceId)&username=$($login)&passhash=$($passwordHash)"
+    $response = Invoke-WebRequestWithoutException -Uri $url -maximumRedirection 0
+
+    if ($url.StartsWith('http://') -and [int]$response.StatusCode -eq 302 -and $response.Headers["Location"] -eq $url.Replace('http://', 'https://')) {
+        $response = Invoke-WebRequestWithoutException -Uri $response.Headers["Location"] -maximumRedirection 0
+    }
+
+    if ([int]$response.StatusCode -eq 302){
         if ($response.Headers["Location"] -match ".*id=(\d*).*"){
             $sensorId = $response.Headers["Location"] -replace ".*id=(\d*).*", "`$1"
 
@@ -722,8 +1294,54 @@ function Copy-PrtgSensor {
         }
     }
 
-    throw new Exception($response.Content)
+    throw "Unable to copy prtg sensor. Response is: $($response.Content)" 
 }
+
+
+function Copy-PrtgDevice {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $apiUrl,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $login,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $passwordHash,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $templateDeviceId,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $groupId,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $deviceName
+    )
+
+    if (!$apiUrl.EndsWith("/")){
+        $apiUrl += "/"
+    }   
+
+    $url = "$($apiUrl)api/duplicateobject.htm?id=$($templateDeviceId)&name=$([uri]::EscapeDataString($deviceName))&targetid=$($groupId)&username=$($login)&passhash=$($passwordHash)"
+    $response = Invoke-WebRequestWithoutException -Uri $url -maximumRedirection 0
+
+    if ($url.StartsWith('http://') -and [int]$response.StatusCode -eq 302 -and $response.Headers["Location"] -eq $url.Replace('http://', 'https://')) {
+        $response = Invoke-WebRequestWithoutException -Uri $response.Headers["Location"] -maximumRedirection 0
+    }
+
+    if ([int]$response.StatusCode -eq 302){
+        if ($response.Headers["Location"] -match ".*id=(\d*).*"){
+            $deviceId = $response.Headers["Location"] -replace ".*id=(\d*).*", "`$1"
+
+            return $deviceId
+        }
+    }
+
+    throw "Unable to copy prtg device. Response is: $($response.Content)" 
+}
+
 
 function Set-PrtgObjectProperty {
     param(
@@ -746,11 +1364,15 @@ function Set-PrtgObjectProperty {
         [string]
         $propertyValue
     )
-            
-    $url = "$($apiUrl)/api/setobjectproperty.htm?id=$($objectId)&name=$($propertyName)&value=$($propertyValue)&username=$($login)&passhash=$($passwordHash)"
 
-    $response = Invoke-WebRequest -UseBasicParsing -Uri $url
-    $result = $response.StatusCode -gt 199 -and $response.StatusCode -lt 300
+    if (!$apiUrl.EndsWith("/")){
+        $apiUrl += "/"
+    }   
+            
+    $url = "$($apiUrl)api/setobjectproperty.htm?id=$($objectId)&name=$($propertyName)&value=$($propertyValue)&username=$($login)&passhash=$($passwordHash)"
+
+    $response = Invoke-WebRequestWithoutException -Uri $url
+    $result = [int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300
 
     return $result
 }
@@ -770,11 +1392,15 @@ function Delete-PrtgObject {
         [string]
         $objectId
     )
+          
+    if (!$apiUrl.EndsWith("/")){
+        $apiUrl += "/"
+    }          
             
-    $url = "$($apiUrl)/api/deleteobject.htm?id=$($objectId)&username=$($login)&passhash=$($passwordHash)"
+    $url = "$($apiUrl)api/deleteobject.htm?id=$($objectId)&username=$($login)&passhash=$($passwordHash)"
 
-    $response = Invoke-WebRequest -UseBasicParsing -Uri $url
-    $result = $response.StatusCode -gt 199 -and $response.StatusCode -lt 300
+    $response = Invoke-WebRequestWithoutException -Uri $url
+    $result = [int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300
 
     return $result
 }
@@ -794,11 +1420,15 @@ function Start-PrtgObject {
         [string]
         $objectId
     )
-            
-    $url = "$($apiUrl)/api/pause.htm?id=$($objectId)&username=$($login)&passhash=$($passwordHash)"
 
-    $response = Invoke-WebRequest -UseBasicParsing -Uri $url
-    $result = $response.StatusCode -gt 199 -and $response.StatusCode -lt 300
+    if (!$apiUrl.EndsWith("/")){
+        $apiUrl += "/"
+    }
+            
+    $url = "$($apiUrl)api/pause.htm?id=$($objectId)&username=$($login)&passhash=$($passwordHash)"
+
+    $response = Invoke-WebRequestWithoutException -Uri $url
+    $result = [int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300
 
     return $result
 }
@@ -821,11 +1451,36 @@ function Stop-PrtgObject {
         [string]
         $message
     )
-            
-    $url = "$($apiUrl)/api/pause.htm?id=$($objectId)&pausemsg=$($message)&action=0&username=$($login)&passhash=$($passwordHash)"
 
-    $response = Invoke-WebRequest -UseBasicParsing -Uri $url
-    $result = $response.StatusCode -gt 199 -and $response.StatusCode -lt 300
+    if (!$apiUrl.EndsWith("/")){
+        $apiUrl += "/"
+    }
+            
+    $url = "$($apiUrl)api/pause.htm?id=$($objectId)&pausemsg=$($message)&action=0&username=$($login)&passhash=$($passwordHash)"
+
+    $response = Invoke-WebRequestWithoutException -Uri $url
+    $result = [int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300
 
     return $result
 }
+
+function Invoke-WebRequestWithoutException {
+    param (
+        [string] $Uri,
+        $maximumRedirection = 5
+    )
+    $request = $null
+    try {
+        $response = Invoke-WebRequest -UseBasicParsing -Uri $Uri -MaximumRedirection $maximumRedirection -ErrorAction SilentlyContinue
+    } 
+    catch [System.Net.WebException] {
+        if ($_.Exception.Response){
+                $response = $_.Exception.Response
+        } else {
+            throw $_
+        }
+    }
+
+    return $response
+}
+

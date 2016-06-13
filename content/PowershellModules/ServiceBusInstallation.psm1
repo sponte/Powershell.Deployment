@@ -80,9 +80,9 @@ function Install-ServiceBus {
         $serviceBusConfig
     )
 
-    foreach($serviceBusTopicConfig in @($serviceBusConfig.queues.queue)) {
-        if(!$serviceBusTopicConfig) { continue }
-        Install-ServiceBusQueue -connectionString $serviceBusConfig.connectionString -serviceBusQueueConfig $serviceBusTopicConfig
+    foreach($serviceBusQueueConfig in @($serviceBusConfig.queues.queue)) {
+        if(!$serviceBusQueueConfig) { continue }
+        Install-ServiceBusQueue -connectionString $serviceBusConfig.connectionString -serviceBusQueueConfig $serviceBusQueueConfig
     }
 
     foreach($serviceBusTopicConfig in @($serviceBusConfig.topics.topic)) {
