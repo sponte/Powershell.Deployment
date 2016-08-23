@@ -1238,7 +1238,7 @@ function Get-PrtgObjectProperty {
         $apiUrl += "/"
     }   
             
-    $url = "$($apiUrl)api/getobjectproperty.htm?id=$($objectId)&name=$($propertyName)&username=$($login)&passhash=$($passwordHash)"
+    $url = "$($apiUrl)api/getobjectproperty.htm?id=$($objectId)&name=$([uri]::EscapeDataString($propertyName))&username=$($login)&passhash=$($passwordHash)"
 
     $response = Invoke-WebRequestWithoutException -Uri $url
 
@@ -1369,7 +1369,7 @@ function Set-PrtgObjectProperty {
         $apiUrl += "/"
     }   
             
-    $url = "$($apiUrl)api/setobjectproperty.htm?id=$($objectId)&name=$($propertyName)&value=$($propertyValue)&username=$($login)&passhash=$($passwordHash)"
+    $url = "$($apiUrl)api/setobjectproperty.htm?id=$($objectId)&name=$([uri]::EscapeDataString($propertyName))&value=$([uri]::EscapeDataString($propertyValue))&username=$($login)&passhash=$($passwordHash)"
 
     $response = Invoke-WebRequestWithoutException -Uri $url
     $result = [int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300
@@ -1456,7 +1456,7 @@ function Stop-PrtgObject {
         $apiUrl += "/"
     }
             
-    $url = "$($apiUrl)api/pause.htm?id=$($objectId)&action=0&pausemsg=$($message)&action=0&username=$($login)&passhash=$($passwordHash)"
+    $url = "$($apiUrl)api/pause.htm?id=$($objectId)&action=0&pausemsg=$([uri]::EscapeDataString($message))&action=0&username=$($login)&passhash=$($passwordHash)"
 
     $response = Invoke-WebRequestWithoutException -Uri $url
     $result = [int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300
