@@ -13,7 +13,6 @@
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
     $serviceBusAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\Microsoft.ServiceBus.dll"
-
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
     Install-FilePermissions $rootPath $configuration
@@ -46,7 +45,6 @@ function Stop-All {
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
     $serviceBusAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\Microsoft.ServiceBus.dll"
-    
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
     if ($webAdministrationAvailable)
@@ -77,8 +75,6 @@ function Start-All {
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
     $serviceBusAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\Microsoft.ServiceBus.dll"
-    $prtgAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\PrtgSetupTool.exe"
-    
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
     if ($webAdministrationAvailable)
@@ -91,9 +87,7 @@ function Start-All {
         Start-ServiceBuses $rootPath $configuration
     }
 
-    if ($prtgAvailable) {
-       Start-PrtgMonitors $rootPath $configuration
-    }
+    Start-PrtgMonitors $rootPath $configuration
 }
 
 
@@ -112,8 +106,6 @@ function Uninstall-All {
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
     $serviceBusAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\Microsoft.ServiceBus.dll"
-    $prtgAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\PrtgSetupTool.exe"
-    
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
     if ($webAdministrationAvailable)
@@ -128,10 +120,7 @@ function Uninstall-All {
 
     Uninstall-Certificates $rootPath $configuration
     Uninstall-FilePermissions $rootPath $configuration
-
-    if ($prtgAvailable) {
-       Uninstall-PrtgMonitors $rootPath $configuration
-    }
+    Uninstall-PrtgMonitors $rootPath $configuration
 }
 
 function Get-Metadata {
@@ -149,8 +138,6 @@ function Get-Metadata {
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
     $serviceBusAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\Microsoft.ServiceBus.dll"
-    $prtgAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\PrtgSetupTool.exe"
-    
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
     Get-MetadataForCertificates $rootPath $configuration
