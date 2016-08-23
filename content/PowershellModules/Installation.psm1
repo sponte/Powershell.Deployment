@@ -91,9 +91,7 @@ function Start-All {
         Start-ServiceBuses $rootPath $configuration
     }
 
-    if ($prtgAvailable) {
-       Start-PrtgMonitors $rootPath $configuration
-    }
+    Start-PrtgMonitors $rootPath $configuration
 }
 
 
