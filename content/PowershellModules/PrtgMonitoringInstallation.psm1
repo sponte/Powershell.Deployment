@@ -1425,7 +1425,7 @@ function Start-PrtgObject {
         $apiUrl += "/"
     }
             
-    $url = "$($apiUrl)api/pause.htm?id=$($objectId)&username=$($login)&passhash=$($passwordHash)"
+    $url = "$($apiUrl)api/pause.htm?id=$($objectId)&action=1&username=$($login)&passhash=$($passwordHash)"
 
     $response = Invoke-WebRequestWithoutException -Uri $url
     $result = [int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300
@@ -1456,7 +1456,7 @@ function Stop-PrtgObject {
         $apiUrl += "/"
     }
             
-    $url = "$($apiUrl)api/pause.htm?id=$($objectId)&pausemsg=$($message)&action=0&username=$($login)&passhash=$($passwordHash)"
+    $url = "$($apiUrl)api/pause.htm?id=$($objectId)&action=0&pausemsg=$($message)&action=0&username=$($login)&passhash=$($passwordHash)"
 
     $response = Invoke-WebRequestWithoutException -Uri $url
     $result = [int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300
