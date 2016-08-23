@@ -77,7 +77,6 @@ function Start-All {
 
     $webAdministrationAvailable = Get-Module WebAdministration -ListAvailable
     $serviceBusAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\Microsoft.ServiceBus.dll"
-    $prtgAvailable = Test-Path "$rootPath\Deployment\PowershellModules\Tools\PrtgSetupTool.exe"
     
     $configuration = Get-Configuration $environmentConfigurationFilePath $productConfigurationFilePath
 
