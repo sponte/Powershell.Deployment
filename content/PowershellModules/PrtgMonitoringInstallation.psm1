@@ -384,6 +384,17 @@ function Install-PrtgSensor {
             } 
             Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
         }
+
+        Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
+        $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+
+        if ($sensorIds.Count -gt 1){
+            $sensorIds | Sort-Object | select -skip 1 | %{
+                $sensorId = $_
+                Write-Log "Delete PrtgSensor for $sensorId"
+                Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+            }
+        }        
     } else {
         $sensorIds | %{
             $sensorId = $_
