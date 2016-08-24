@@ -323,9 +323,9 @@ function Install-PrtgSensor {
     $sensorParameter = "$($sensorConfig.sensorUrl)"
 
     Write-Log "Getting sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
-    $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+    $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-    if (!$sensorId){
+    if (!$sensorIds){
         Write-Log "Getting PrtgSensor group id for $groupName"
         $groupId = Get-PrtgGroup -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName
         if (!$groupId){
@@ -385,29 +385,32 @@ function Install-PrtgSensor {
             Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
         }
     } else {
-        Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/exeparams"
-        $oldSensorParameter = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams"
+        $sensorIds | %{
+            $sensorId = $_
+            Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/exeparams"
+            $oldSensorParameter = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams"
 
-        if ($oldSensorParameter -ne $sensorParameter){
-            Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-            $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
-            if (!$result){
-                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
-            } 
-            Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
-        }
-
-        if ($sensorTimeout -ne 0){
-            Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/timeout"
-            $oldSensorTimeout = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout"
-
-            if ($oldSensorTimeout -ne $sensorTimeout){
+            if ($oldSensorParameter -ne $sensorParameter){
                 Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-                $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+                $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
                 if (!$result){
-                    throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                    throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
                 } 
-                Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+            }
+
+            if ($sensorTimeout -ne 0){
+                Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/timeout"
+                $oldSensorTimeout = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout"
+
+                if ($oldSensorTimeout -ne $sensorTimeout){
+                    Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
+                    $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+                    if (!$result){
+                        throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                    } 
+                    Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                }
             }
         }
     }
@@ -438,11 +441,14 @@ function Remove-PrtgSensor {
         $deviceName = $sensorConfig.deviceName
         $sensorName = $sensorConfig.sensorName
 
-        Write-Log "Getting sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
-        $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+        Write-Log "Getting sensor ids for PrtgSensor for $groupName/$deviceName/$sensorName"
+        $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-        Write-Log "Delete PrtgSensor for $sensorId"
-        Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+        $sensorIds | %{      
+            $sensorId = $_
+            Write-Log "Delete PrtgSensor for $sensorId"
+            Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+        }
     }
     else    
     {
@@ -474,10 +480,13 @@ function Stop-PrtgSensor {
     $sensorName = $sensorConfig.sensorName
 
     Write-Log "Getting sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
-    $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+    $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-    Write-Log "Pause PrtgSensor for $sensorId"
-    Stop-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -message "Pause for deployment"
+    $sensorIds | %{      
+        $sensorId = $_
+        Write-Log "Pause PrtgSensor for $sensorId"
+        Stop-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -message "Pause for deployment"
+    }
 }
 
 function Start-PrtgSensor {
@@ -504,10 +513,13 @@ function Start-PrtgSensor {
     $sensorName = $sensorConfig.sensorName
 
     Write-Log "Getting sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
-    $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+    $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-    Write-Log "Resume PrtgSensor for $sensorId"
-    Start-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+    $sensorIds | %{      
+        $sensorId = $_
+        Write-Log "Resume PrtgSensor for $sensorId"
+        Start-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+    }
 }
 
 function Test-PrtgSensor {
@@ -529,15 +541,14 @@ function Test-PrtgSensor {
         $passwordHash 
     )
 
-
     $groupName = $sensorConfig.groupName
     $deviceName = $sensorConfig.deviceName
     $sensorName = $sensorConfig.sensorName
 
     Write-Log "Checking PrtgSensor for $groupName/$deviceName/$sensorName"
-    $sensor = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+    $sensors = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-    return ($sensor -ne $null)
+    return ($sensors -ne $null)
 }
 
 # Methods for single items PrtgServiceBusSubscribeSensors
@@ -586,9 +597,9 @@ function Install-PrtgConventionServiceBusSubscribeSensors {
     )
 
     Write-Log "Getting sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
-    $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+    $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-    if (!$sensorId){
+    if (!$sensorIds){
         Write-Log "Getting PrtgSensor group id for $groupName"
         $groupId = Get-PrtgGroup -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName
         if (!$groupId){
@@ -648,29 +659,32 @@ function Install-PrtgConventionServiceBusSubscribeSensors {
             Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
         }
     } else {
-        Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/exeparams"
-        $oldSensorParameter = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams"
+        $sensorIds | %{
+            $sensorId = $_    
+            Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/exeparams"
+            $oldSensorParameter = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams"
 
-        if ($oldSensorParameter -ne $sensorParameter){
-            Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-            $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
-            if (!$result){
-                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
-            } 
-            Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
-        }
-
-        if ($sensorTimeout -ne 0){
-            Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/timeout"
-            $oldSensorTimeout = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout"
-
-            if ($oldSensorTimeout -ne $sensorTimeout){
+            if ($oldSensorParameter -ne $sensorParameter){
                 Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-                $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+                $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
                 if (!$result){
-                    throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                    throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
                 } 
-                Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+            }
+
+            if ($sensorTimeout -ne 0){
+                Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/timeout"
+                $oldSensorTimeout = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout"
+
+                if ($oldSensorTimeout -ne $sensorTimeout){
+                    Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
+                    $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+                    if (!$result){
+                        throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                    } 
+                    Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                }
             }
         }
     }   
@@ -711,10 +725,13 @@ function Remove-PrtgConventionServiceBusSubscribeSensors {
         $sensorName = $sensorConfig.sensorName
 
         Write-Log "Getting sensor id for PrtgServiceBusSubscribeSensors for $groupName/$deviceName/$sensorName"
-        $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+        $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-        Write-Log "Delete PrtgServiceBusSubscribeSensors for $sensorId"
-        Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+        $sensorIds | %{      
+            $sensorId = $_
+            Write-Log "Delete PrtgServiceBusSubscribeSensors for $sensorId"
+            Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+        }
     }
     else    
     {
@@ -748,10 +765,13 @@ function Stop-PrtgConventionServiceBusSubscribeSensors {
     )
 
     Write-Log "Getting sensor id for PrtgServiceBusSubscribeSensor for $groupName/$deviceName/$sensorName"
-    $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+    $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-    Write-Log "Pause PrtgServiceBusSubscribeSensor for $sensorId"
-    Stop-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -message "Pause for deployment"
+    $sensorIds | %{      
+        $sensorId = $_
+        Write-Log "Pause PrtgServiceBusSubscribeSensor for $sensorId"
+        Stop-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -message "Pause for deployment"
+    }
 }
 
 function Start-PrtgConventionServiceBusSubscribeSensors {
@@ -780,10 +800,13 @@ function Start-PrtgConventionServiceBusSubscribeSensors {
     )
 
     Write-Log "Getting sensor id for PrtgServiceBusSubscribeSensor for $groupName/$deviceName/$sensorName"
-    $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+    $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-    Write-Log "Resume PrtgServiceBusSubscribeSensor for $sensorId"
-    Start-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+    $sensorIds | %{      
+        $sensorId = $_
+        Write-Log "Resume PrtgServiceBusSubscribeSensor for $sensorId"
+        Start-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+    }
 }
 
 function Test-PrtgConventionServiceBusSubscribeSensors {
@@ -812,9 +835,9 @@ function Test-PrtgConventionServiceBusSubscribeSensors {
     )
 
     Write-Log "Checking PrtgServiceBusSubscribeSensor for $groupName/$deviceName/$sensorName"
-    $sensor = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+    $sensors = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-    return ($sensor -ne $null)
+    return ($sensors -ne $null)
 }
 
 
@@ -851,9 +874,9 @@ function Install-PrtgServiceBusSubscribeSensors {
     $sensorParameter = "-connectionString  '$($sensorConfig.connectionString)' -topic '$($sensorConfig.subscriptionTopic)' -subscriptionName '$($sensorConfig.subscriptionName)'"
 
     Write-Log "Getting sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
-    $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+    $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-    if (!$sensorId){
+    if (!$sensorIds){
         Write-Log "Getting PrtgSensor group id for $groupName"
         $groupId = Get-PrtgGroup -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName
         if (!$groupId){
@@ -913,29 +936,32 @@ function Install-PrtgServiceBusSubscribeSensors {
             Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
         }
     } else {
-        Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/exeparams"
-        $oldSensorParameter = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams"
+        $sensorIds | %{      
+            $sensorId = $_    
+            Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/exeparams"
+            $oldSensorParameter = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams"
 
-        if ($oldSensorParameter -ne $sensorParameter){
-            Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-            $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
-            if (!$result){
-                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
-            } 
-            Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
-        }
-
-        if ($sensorTimeout -ne 0){
-            Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/timeout"
-            $oldSensorTimeout = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout"
-
-            if ($oldSensorTimeout -ne $sensorTimeout){
+            if ($oldSensorParameter -ne $sensorParameter){
                 Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
-                $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+                $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
                 if (!$result){
-                    throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                    throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
                 } 
-                Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+            }
+
+            if ($sensorTimeout -ne 0){
+                Write-Log "Getting PrtgSensor sensor property for $groupName/$deviceName/$sensorName/timeout"
+                $oldSensorTimeout = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout"
+
+                if ($oldSensorTimeout -ne $sensorTimeout){
+                    Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
+                    $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
+                    if (!$result){
+                        throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                    } 
+                    Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                }
             }
         }
     }   
@@ -967,10 +993,13 @@ function Remove-PrtgServiceBusSubscribeSensors {
         $sensorName = $sensorConfig.sensorName
 
         Write-Log "Getting sensor id for PrtgServiceBusSubscribeSensors for $groupName/$deviceName/$sensorName"
-        $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+        $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-        Write-Log "Delete PrtgServiceBusSubscribeSensors for $sensorId"
-        Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+        $sensorIds | %{      
+            $sensorId = $_
+            Write-Log "Delete PrtgServiceBusSubscribeSensors for $sensorId"
+            Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+        }
     }
     else    
     {
@@ -1002,10 +1031,13 @@ function Stop-PrtgServiceBusSubscribeSensors {
     $sensorName = $sensorConfig.sensorName
 
     Write-Log "Getting sensor id for PrtgServiceBusSubscribeSensor for $groupName/$deviceName/$sensorName"
-    $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+    $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-    Write-Log "Pause PrtgServiceBusSubscribeSensor for $sensorId"
-    Stop-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -message "Pause for deployment"
+    $sensorIds | %{      
+        $sensorId = $_
+        Write-Log "Pause PrtgServiceBusSubscribeSensor for $sensorId"
+        Stop-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -message "Pause for deployment"
+    }
 }
 
 function Start-PrtgServiceBusSubscribeSensors {
@@ -1032,10 +1064,13 @@ function Start-PrtgServiceBusSubscribeSensors {
     $sensorName = $sensorConfig.sensorName
 
     Write-Log "Getting sensor id for PrtgServiceBusSubscribeSensor for $groupName/$deviceName/$sensorName"
-    $sensorId = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+    $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-    Write-Log "Resume PrtgServiceBusSubscribeSensor for $sensorId"
-    Start-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+    $sensorIds | %{      
+        $sensorId = $_
+        Write-Log "Resume PrtgServiceBusSubscribeSensor for $sensorId"
+        Start-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+    }
 }
 
 function Test-PrtgServiceBusSubscribeSensors {
@@ -1062,9 +1097,9 @@ function Test-PrtgServiceBusSubscribeSensors {
     $sensorName = $sensorConfig.sensorName
 
     Write-Log "Checking PrtgServiceBusSubscribeSensor for $groupName/$deviceName/$sensorName"
-    $sensor = Get-PrtgSensor -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+    $sensors = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-    return ($sensor -ne $null)
+    return ($sensors -ne $null)
 }
 
 function Get-PrtgSensor {
@@ -1114,6 +1149,51 @@ function Get-PrtgSensor {
     }
 
     return $matchingSensors[0].objid
+}
+
+function Get-PrtgSensors {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $apiUrl,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $login,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $passwordHash,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $groupName,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $deviceName,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $sensorName
+    )
+
+    if (!$apiUrl.EndsWith("/")){
+        $apiUrl += "/"
+    }
+
+    $url = "$($apiUrl)api/table.json?content=sensors&output=json&columns=objid,group,device,sensor&filter_sensor=$([uri]::EscapeDataString($sensorName))&username=$($login)&passhash=$($passwordHash)"
+
+    $response = Invoke-WebRequestWithoutException -Uri $url
+
+    if (!([int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300)){
+        return $null
+    }
+
+    $body = ConvertFrom-Json -InputObject $response.Content
+
+    $matchingSensors = @($body.sensors | ?{$_.group -eq $groupName -and $_.device -eq $deviceName -and $_.sensor -eq $sensorName})
+
+    if (!$matchingSensors){
+        return $null
+    }
+
+    return $matchingSensors | %{$_.objid}
 }
 
 function Get-PrtgDevice {
