@@ -372,7 +372,10 @@ function Install-PrtgSensor {
         Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
         $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
         if (!$result){
-            throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+            $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName | ?{$_ -eq $sensorId}
+            if ($sensorIds){
+                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+            }
         } 
         Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
 
@@ -380,21 +383,30 @@ function Install-PrtgSensor {
             Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout to $sensorParameter"
             $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
             if (!$result){
-                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName | ?{$_ -eq $sensorId}
+                if ($sensorIds){
+                    throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                }
             } 
             Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
         }
 
-        Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
-        $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+        $sensorIds=@()
+        do
+        {
+            Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
+            $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-        if ($sensorIds.Count -gt 1){
-            $sensorIds | Sort-Object | select -skip 1 | %{
-                $sensorId = $_
-                Write-Log "Delete PrtgSensor for $sensorId"
-                Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+            if ($sensorIds.Count -gt 1){
+                $sensorIds | Sort-Object | select -skip 1 | %{
+                    $sensorId = $_
+                    Write-Log "Delete PrtgSensor for $sensorId"
+                    Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+                }
+                Write-Log "Wait 5 seconds and then check again"
+                start-sleep -seconds 5
             }
-        }        
+        } while ($sensorIds.Count -gt 1)    
     } else {
         $sensorIds | %{
             $sensorId = $_
@@ -657,7 +669,10 @@ function Install-PrtgConventionServiceBusSubscribeSensors {
         Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
         $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
         if (!$result){
-            throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+            $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName | ?{$_ -eq $sensorId}
+            if ($sensorIds){
+                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+            }
         } 
         Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
 
@@ -665,21 +680,30 @@ function Install-PrtgConventionServiceBusSubscribeSensors {
             Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout to $sensorParameter"
             $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
             if (!$result){
-                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName | ?{$_ -eq $sensorId}
+                if ($sensorIds){
+                    throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                }
             } 
             Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
         }
 
-        Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
-        $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+        $sensorIds=@()
+        do
+        {
+            Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
+            $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-        if ($sensorIds.Count -gt 1){
-            $sensorIds | Sort-Object | select -skip 1 | %{
-                $sensorId = $_
-                Write-Log "Delete duplicate PrtgServiceBusSubscribeSensors for $sensorId"
-                Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+            if ($sensorIds.Count -gt 1){
+                $sensorIds | Sort-Object | select -skip 1 | %{
+                    $sensorId = $_
+                    Write-Log "Delete PrtgServiceBusSubscribeSensors for $sensorId"
+                    Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+                }
+                Write-Log "Wait 5 seconds and then check again"
+                start-sleep -seconds 5
             }
-        }
+        } while ($sensorIds.Count -gt 1)          
     } else {
         $sensorIds | %{
             $sensorId = $_    
@@ -945,7 +969,10 @@ function Install-PrtgServiceBusSubscribeSensors {
         Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams to $sensorParameter"
         $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "exeparams" -propertyValue $sensorParameter
         if (!$result){
-            throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+            $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName | ?{$_ -eq $sensorId}
+            if ($sensorIds){
+                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
+            }
         } 
         Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/exeparams set to $sensorParameter"
 
@@ -953,21 +980,30 @@ function Install-PrtgServiceBusSubscribeSensors {
             Write-Log "Setting PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout to $sensorParameter"
             $result = Set-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId -propertyName "timeout" -propertyValue $sensorTimeout
             if (!$result){
-                throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName | ?{$_ -eq $sensorId}
+                if ($sensorIds){
+                    throw "Unable to set prtg sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
+                }
             } 
             Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
         }
 
-        Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
-        $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+        $sensorIds=@()
+        do
+        {
+            Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
+            $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-        if ($sensorIds.Count -gt 1){
-            $sensorIds | Sort-Object | select -skip 1 | %{
-                $sensorId = $_
-                Write-Log "Delete duplicate PrtgServiceBusSubscribeSensors for $sensorId"
-                Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+            if ($sensorIds.Count -gt 1){
+                $sensorIds | Sort-Object | select -skip 1 | %{
+                    $sensorId = $_
+                    Write-Log "Delete PrtgServiceBusSubscribeSensors for $sensorId"
+                    Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+                }
+                Write-Log "Wait 5 seconds and then check again"
+                start-sleep -seconds 5
             }
-        }        
+        } while ($sensorIds.Count -gt 1)           
     } else {
         $sensorIds | %{      
             $sensorId = $_    
@@ -1366,6 +1402,29 @@ function Get-PrtgObjectProperty {
     return $propertyValue
 }
 
+function Test-PrtgObjectProperty {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $apiUrl,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $login,     
+        [Parameter(Mandatory = $true)]
+        [string]
+        $passwordHash,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $objectId,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $propertyName
+    )
+
+    $property = Get-PrtgObjectProperty -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $objectId -propertyName $propertyName
+    return ($property -ne $null)
+}
+
 function Copy-PrtgSensor {
     param(
         [Parameter(Mandatory = $true)]
@@ -1510,7 +1569,7 @@ function Delete-PrtgObject {
         $apiUrl += "/"
     }          
             
-    $url = "$($apiUrl)api/deleteobject.htm?id=$($objectId)&username=$($login)&passhash=$($passwordHash)"
+    $url = "$($apiUrl)api/deleteobject.htm?id=$($objectId)&approve=1&username=$($login)&passhash=$($passwordHash)"
 
     $response = Invoke-WebRequestWithoutException -Uri $url
     $result = [int]$response.StatusCode -gt 199 -and [int]$response.StatusCode -lt 300
@@ -1582,6 +1641,9 @@ function Invoke-WebRequestWithoutException {
         [string] $Uri,
         $maximumRedirection = 5
     )
+
+    $Uri += "&_=$((Get-Date).Ticks)"
+
     $request = $null
     try {
         $response = Invoke-WebRequest -UseBasicParsing -Uri $Uri -MaximumRedirection $maximumRedirection -ErrorAction SilentlyContinue
