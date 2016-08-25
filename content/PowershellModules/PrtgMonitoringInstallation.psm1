@@ -385,16 +385,22 @@ function Install-PrtgSensor {
             Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
         }
 
-        Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
-        $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+        $sensorIds=@()
+        do
+        {
+            Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
+            $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-        if ($sensorIds.Count -gt 1){
-            $sensorIds | Sort-Object | select -skip 1 | %{
-                $sensorId = $_
-                Write-Log "Delete PrtgSensor for $sensorId"
-                Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+            if ($sensorIds.Count -gt 1){
+                $sensorIds | Sort-Object | select -skip 1 | %{
+                    $sensorId = $_
+                    Write-Log "Delete PrtgSensor for $sensorId"
+                    Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+                }
+                Write-Log "Wait 5 seconds and then check again"
+                start-sleep -seconds 5
             }
-        }        
+        } while ($sensorIds.Count -gt 1)    
     } else {
         $sensorIds | %{
             $sensorId = $_
@@ -670,16 +676,22 @@ function Install-PrtgConventionServiceBusSubscribeSensors {
             Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
         }
 
-        Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
-        $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+        $sensorIds=@()
+        do
+        {
+            Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
+            $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-        if ($sensorIds.Count -gt 1){
-            $sensorIds | Sort-Object | select -skip 1 | %{
-                $sensorId = $_
-                Write-Log "Delete duplicate PrtgServiceBusSubscribeSensors for $sensorId"
-                Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+            if ($sensorIds.Count -gt 1){
+                $sensorIds | Sort-Object | select -skip 1 | %{
+                    $sensorId = $_
+                    Write-Log "Delete PrtgServiceBusSubscribeSensors for $sensorId"
+                    Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+                }
+                Write-Log "Wait 5 seconds and then check again"
+                start-sleep -seconds 5
             }
-        }
+        } while ($sensorIds.Count -gt 1)          
     } else {
         $sensorIds | %{
             $sensorId = $_    
@@ -958,16 +970,22 @@ function Install-PrtgServiceBusSubscribeSensors {
             Write-Log "PrtgSensor sensor property $groupName/$deviceName/$sensorName/timeout set to $sensorTimeout"
         }
 
-        Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
-        $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
+        $sensorIds=@()
+        do
+        {
+            Write-Log "Check for duplicate sensor id for PrtgSensor for $groupName/$deviceName/$sensorName"
+            $sensorIds = Get-PrtgSensors -apiUrl $apiUrl -login $login -passwordHash $passwordHash -groupName $groupName -deviceName $deviceName -sensorName $sensorName
 
-        if ($sensorIds.Count -gt 1){
-            $sensorIds | Sort-Object | select -skip 1 | %{
-                $sensorId = $_
-                Write-Log "Delete duplicate PrtgServiceBusSubscribeSensors for $sensorId"
-                Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+            if ($sensorIds.Count -gt 1){
+                $sensorIds | Sort-Object | select -skip 1 | %{
+                    $sensorId = $_
+                    Write-Log "Delete PrtgServiceBusSubscribeSensors for $sensorId"
+                    Delete-PrtgObject -apiUrl $apiUrl -login $login -passwordHash $passwordHash -objectId $sensorId
+                }
+                Write-Log "Wait 5 seconds and then check again"
+                start-sleep -seconds 5
             }
-        }        
+        } while ($sensorIds.Count -gt 1)           
     } else {
         $sensorIds | %{      
             $sensorId = $_    
@@ -1582,6 +1600,9 @@ function Invoke-WebRequestWithoutException {
         [string] $Uri,
         $maximumRedirection = 5
     )
+
+    $Uri += "&_=$((Get-Date).Ticks)"
+
     $request = $null
     try {
         $response = Invoke-WebRequest -UseBasicParsing -Uri $Uri -MaximumRedirection $maximumRedirection -ErrorAction SilentlyContinue
