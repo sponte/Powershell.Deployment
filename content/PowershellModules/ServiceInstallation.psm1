@@ -247,6 +247,10 @@ function Install-WindowsService {
 	if ($serviceContainer -eq 'srvany' -or $serviceContainer -eq 'nssm') {	
 		New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)" -Name "Parameters" –Force
 		New-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "Application" -Value "$binPath" -Force
+		New-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "AppDirectory" -Value "$rootPath" -Force
+		New-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "AppStdout" -Value "$rootPath\console_output.log" -Force
+		New-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "AppStderr" -Value "$rootPath\console_output_error.log" -Force
+		
 		if ($serviceConfig.arguments) {
 			New-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\$($serviceConfig.name)\Parameters" -Name "AppParameters" -Value "$($serviceConfig.arguments)" -Force
 		} else {
