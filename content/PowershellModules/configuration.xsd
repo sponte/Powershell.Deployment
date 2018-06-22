@@ -1026,6 +1026,7 @@
       <xs:element name="properties" type="appPoolProperties" minOccurs="0" maxOccurs="1" />
     </xs:all>
     <xs:attribute name="name" use="required" />
+    <xs:attribute name="autoStart" type="xs:boolean" default="true" />
     <xs:attribute name="frameworkVersion" type="frameworkVersion" default="v4.0" />
     <xs:attribute name="enable32Bit" type="xs:boolean" default="false" />
     <xs:attribute name="managedPipelineMode" type="managedPipelineMode" default="Integrated" />
