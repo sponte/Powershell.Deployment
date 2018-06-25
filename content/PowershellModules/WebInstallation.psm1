@@ -241,6 +241,10 @@ function Install-ApplicationPool {
 	
 	Write-Log "Creating applicationPool $($appPoolConfig.name)"
 	$appPool = New-WebAppPool -Name $appPoolConfig.name
+
+	if ($appPoolConfig.autoStart -eq $false) {
+		Stop-WebAppPool -Name $appPoolConfig.name
+	}
 	
 	$appPool.enable32BitAppOnWin64 = $appPoolConfig.enable32Bit
 	$appPool.managedRuntimeVersion = $appPoolConfig.frameworkVersion
