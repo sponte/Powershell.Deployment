@@ -118,12 +118,12 @@ function Uninstall-Website {
 
 		if(Test-Path "IIS:/Sites/$($siteConfig.name)/$($application.alias)") {
 			Write-Log "Removing site $($siteConfig.name)/$($application.alias)"
-			Remove-WebApplication $application.alias -Site $siteConfig.Name -Verbose
+			Execute-WithRetry { Remove-WebApplication $application.alias -Site $siteConfig.Name -Verbose }
 		}
 
 		if(Test-Path "IIS:\AppPools\$($application.AppPool.Name)") {
 			Write-Log "Removing application pool $($application.AppPool.Name)"
-			Remove-WebAppPool $application.AppPool.Name -Verbose
+			Execute-WithRetry { Remove-WebAppPool $application.AppPool.Name -Verbose }
 		}
 
 	}
@@ -139,7 +139,7 @@ function Uninstall-Website {
 	if(Test-Path "IIS:/Sites/$($siteConfig.name)") {
 		if($siteSafeToRemove) {
 			Write-Log "site $($siteConfig.name) already exists, removing"
-			Remove-Website $siteConfig.name -Verbose
+			Execute-WithRetry { Remove-Website $siteConfig.name -Verbose }
 		} else {
 			Write-Log "Site $($siteConfig.name) is not safe to remove as it contains other applications"
 		}
@@ -148,7 +148,7 @@ function Uninstall-Website {
 	if(Test-Path "IIS:/AppPools/$($siteConfig.appPool.name)") {
 		if($siteSafeToRemove) {
 			Write-Log "AppPool $($siteConfig.appPool.name) already exists, removing"
-			Remove-WebAppPool $siteConfig.name -Verbose
+			Execute-WithRetry { Remove-WebAppPool $siteConfig.name -Verbose }
 		} else {
 			Write-Log "ApplicationPool $($siteConfig.appPool.name) is not safe to remove as it contains other applications"
 		}
@@ -236,14 +236,14 @@ function Install-ApplicationPool {
 	
 	if(Test-Path "IIS:/AppPools/$($appPoolConfig.name)") {
 		Write-Log "The app pool $($appPoolConfig.name) already exists, removing"
-		Remove-WebAppPool $appPoolConfig.Name
+		Execute-WithRetry { Remove-WebAppPool $appPoolConfig.Name }
 	}
 	
 	Write-Log "Creating applicationPool $($appPoolConfig.name)"
-	$appPool = New-WebAppPool -Name $appPoolConfig.name
+	$appPool = Execute-WithRetry { New-WebAppPool -Name $appPoolConfig.name }
 
 	if ($appPoolConfig.autoStart -eq $false) {
-		Stop-WebAppPool -Name $appPoolConfig.name
+		Execute-WithRetry { Stop-WebAppPool -Name $appPoolConfig.name }
 	}
 	
 	$appPool.enable32BitAppOnWin64 = $appPoolConfig.enable32Bit
@@ -274,7 +274,7 @@ function Install-ApplicationPool {
 		if($property -eq $null) { continue }
 
 		Write-Log "[AppPool $($appPoolConfig.name)] Setting property $($property.Path) = $($property.value)"
-		Set-ItemProperty "IIS:\AppPools\$($appPoolConfig.name)" -Name $property.Path -Value $property.Value
+		Execute-WithRetry { Set-ItemProperty "IIS:\AppPools\$($appPoolConfig.name)" -Name $property.Path -Value $property.Value }
 	}
 }
 
@@ -431,15 +431,17 @@ function Install-Website {
 		}
 		
 		Write-Log "Creating web application $($application.alias)" -ForegroundColor Green
-		New-WebApplication `
-			-ApplicationPool $application.appPool.name `
-			-Name $application.alias `
-			-PhysicalPath $application.physicalPath `
-			-Site $site.name `
-			-Force
+		Execute-WithRetry {
+			New-WebApplication `
+				-ApplicationPool $application.appPool.name `
+				-Name $application.alias `
+				-PhysicalPath $application.physicalPath `
+				-Site $site.name `
+				-Force
+		}
 
 		$bindingProtocols = ($siteConfig.bindings.binding | Select -ExpandProperty protocol) -join ","
-		Set-ItemProperty "IIS:/Sites/$($siteConfig.Name)/$($application.alias)" -Name enabledProtocols -value $bindingProtocols
+		Execute-WithRetry { Set-ItemProperty "IIS:/Sites/$($siteConfig.Name)/$($application.alias)" -Name enabledProtocols -value $bindingProtocols }
 
 		foreach($virtualDirectory in $application.virtualDirectories.virtualDirectory) {
 			if(!$virtualDirectory) { continue }
@@ -450,10 +452,12 @@ function Install-Website {
 
 			Write-Log "Creating $($virtualDirectory.alias) virtualDirectory under $($site.name)\$($application.alias)"
 		
-			New-WebVirtualDirectory -Name $virtualDirectory.alias `
-				-PhysicalPath $virtualDirectory.physicalPath `
-				-Site "$($site.name)\$($application.alias)" `
-				-Force
+			Execute-WithRetry {
+				New-WebVirtualDirectory -Name $virtualDirectory.alias `
+					-PhysicalPath $virtualDirectory.physicalPath `
+					-Site "$($site.name)\$($application.alias)" `
+					-Force
+			}
 		}
 
 		# install any custom .net installers that may be in the host assembly
@@ -483,10 +487,12 @@ function Install-Website {
 
 		Write-Log "Creating $($virtualDirectory.alias) virtualDirectory"
 		
-		New-WebVirtualDirectory -Name $virtualDirectory.alias `
-			-PhysicalPath $virtualDirectory.physicalPath `
-			-Site $site.name `
-			-Force
+		Execute-WithRetry {
+			New-WebVirtualDirectory -Name $virtualDirectory.alias `
+				-PhysicalPath $virtualDirectory.physicalPath `
+				-Site $site.name `
+				-Force
+		}
 	}
 }
 

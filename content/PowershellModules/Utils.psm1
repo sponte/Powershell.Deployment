@@ -857,3 +857,36 @@ function Set-IisIncrementalSiteIdCreation {
     Restart-Service W3SVC,WAS -force
 }
 
+function Execute-WithRetry {
+    param (
+        [Parameter(Mandatory)]
+        [ScriptBlock] $command,
+        [int] $maximumNumberOfRetries = 5,
+        [int] $waitTimeBetweenRetriesInSeconds = 2
+    )
+    $attemptCount = 0
+    $isOperationIncomplete = $true
+
+    while ($isOperationIncomplete -and $attemptCount -lt $maximumNumberOfRetries) {
+        $attemptCount++
+
+        try {
+            # Call the script block
+            $resultOfCommand = & $command
+
+            $isOperationIncomplete = $false
+
+            return $resultOfCommand
+        } catch [System.Exception] {
+            Write-Host ("Attempt $attemptCount of $maximumNumberOfRetries failed: " + $_.Exception.Message)
+            
+            if ($attemptCount -lt $maximumNumberOfRetries) {
+                Write-Information "Waiting for $waitTimeBetweenRetriesInSeconds seconds before retrying..."
+                Start-Sleep -Seconds $waitTimeBetweenRetriesInSeconds
+                Write-Information "Retrying..."
+            } else {
+                throw
+            }
+        }
+    }
+}
