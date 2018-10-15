@@ -1,4 +1,4 @@
-function Install-Websites {
+function UninstallIfExistAndInstall-Websites {
  param( 
 		[Parameter(Mandatory = $true)]       
 		[string] 
@@ -10,6 +10,9 @@ function Install-Websites {
 	
 	foreach($site in @($configuration.configuration.sites.site)) {
 		if(!$site) { continue }
+
+		UnInstall-WebSite -rootPath $rootPath -siteConfig $site
+
 		Install-Website -rootPath $rootPath -siteConfig $site
 	}
 }
@@ -287,8 +290,6 @@ function Install-Website {
 		[System.XML.XMLElement]
 		$siteConfig
 	)
-	
-	UnInstall-WebSite $rootPath $siteConfig
 
 	# for each of the app, check whether the are the only apps installed
 		
