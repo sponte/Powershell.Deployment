@@ -862,8 +862,8 @@ function Execute-WithRetry {
         [Parameter(Mandatory)]
         [ScriptBlock] $command,
         [int] $maximumNumberOfRetries = 5,
-        [int] $minWaitTimeBetweenRetriesInSeconds = 2,
-        [int] $maxWaitTimeBetweenRetriesInSeconds = 10
+        [int] $minWaitTimeBetweenRetriesInSeconds = 1,
+        [int] $maxWaitTimeBetweenRetriesInSeconds = 3
     )
     $attemptCount = 0
     $isOperationIncomplete = $true
