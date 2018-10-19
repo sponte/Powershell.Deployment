@@ -5,6 +5,7 @@ $global:ErrorActionPreference = "Stop"
 $CurrentPath = Split-Path -parent $MyInvocation.MyCommand.Definition
 
 Import-Module $CurrentPath\Utils.psd1 -Force -DisableNameChecking
+Import-Module $CurrentPath\IISUtil.psd1 -Force -DisableNameChecking
 Import-Module $CurrentPath\Installation.psd1 -Force -DisableNameChecking
 Import-Module $CurrentPath\CertificateInstallation.psd1 -Force -DisableNameChecking
 Import-Module $CurrentPath\FilePermissionInstallation.psd1 -Force -DisableNameChecking
