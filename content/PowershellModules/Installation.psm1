@@ -23,7 +23,7 @@
     }
 
     if ($webAdministrationAvailable) {
-       Install-Websites $rootPath $configuration
+        UninstallIfExistAndInstall-Websites $rootPath $configuration
     }
     Install-Services $rootPath $configuration
     Install-PrtgMonitors $rootPath $configuration
