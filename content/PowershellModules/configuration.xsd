@@ -3,6 +3,12 @@
   <xs:element name="configuration">
     <xs:complexType>
       <xs:sequence>
+         <xs:element name="prtgSkipSettings" type="prtgSkipSettings" minOccurs="0" maxOccurs="1">
+          <xs:unique name="UniquePrtgSkipSettings">
+            <xs:selector xpath="./*" />
+            <xs:field xpath="name" />
+          </xs:unique>
+        </xs:element>
         <xs:element name="sites" type="sites" minOccurs="0" maxOccurs="1">
           <xs:unique name="UniqueAppPoolNames">
             <xs:selector xpath=".//appPool" />
@@ -54,6 +60,12 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:complexType name="prtgSkipSettings">
+    <xs:sequence>
+      <xs:element name="prtgSkipSetting" type="prtgSkipSetting" minOccurs="1" maxOccurs="1" />
+    </xs:sequence>
+  </xs:complexType>
+  
   <xs:complexType name="sites">
     <xs:sequence>
       <xs:element name="site" type="site" minOccurs="1" maxOccurs="unbounded" />
@@ -927,6 +939,12 @@
       <xs:enumeration value="Disallowed" />
     </xs:restriction>
   </xs:simpleType>
+
+  <xs:complexType name="prtgSkipSetting"> 
+    <xs:attribute name="prtgSkipStop" type="xs:string" use="optional" />
+    <xs:attribute name="prtgSkipUninstall" type="xs:string" use="optional" />
+    <xs:attribute name="prtgErrorsAsWarnings" type="xs:string" use="optional" />
+  </xs:complexType>
 
   <xs:complexType name="site">
     <xs:all>
